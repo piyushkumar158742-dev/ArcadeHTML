@@ -56,38 +56,28 @@
     font-size: 1.4rem; font-weight: 700; color: #ffffff;
     font-variant-numeric: tabular-nums;
   }
-  #time { color: var(--color-correct); text-shadow: 0 0 14px rgba(0,245,196,0.4); }
+  #time { color: var(--color-correct); }
 
   .progress-wrap {
     position: fixed; bottom: 2.2rem; left: 50%; transform: translateX(-50%);
     display: flex; flex-direction: column; align-items: center; gap: 10px;
     z-index: 2;
   }
-  #progress-count {
-    font-size: 0.7rem; letter-spacing: 2px; color: rgba(205, 211, 238, 0.4);
-    font-variant-numeric: tabular-nums; transition: opacity 0.3s ease;
-  }
-  .hint {
+   .hint {
     font-size: 0.68rem; letter-spacing: 1px; color: rgba(205, 211, 238, 0.35);
     text-align: center; max-width: 90vw;
   }
   .hint strong { color: rgba(205, 211, 238, 0.6); }
 
-  .word-card {
+    .word-card {
     position: relative;
     padding: clamp(2rem, 6vw, 4rem) clamp(1.5rem, 8vw, 5rem);
     border-radius: 24px;
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid var(--panel-border);
-    box-shadow: 0 0 60px rgba(0, 245, 196, 0.06), inset 0 0 40px rgba(0, 245, 196, 0.02);
     max-width: 92vw;
     display: flex;
     z-index: 2;
-    animation: borderPulse 4s ease-in-out infinite;
-  }
-  @keyframes borderPulse {
-    0%, 100% { box-shadow: 0 0 60px rgba(0, 245, 196, 0.06), inset 0 0 40px rgba(0, 245, 196, 0.02); }
-    50% { box-shadow: 0 0 80px rgba(0, 245, 196, 0.12), inset 0 0 50px rgba(0, 245, 196, 0.05); }
   }
 
   .word-display {
@@ -112,31 +102,23 @@
 
   .letter.space-letter { width: 0.5em; }
 
-  .letter.current::after {
+    .letter.current::after {
     content: '';
     position: absolute; left: 4%; right: 4%; bottom: -0.14em;
-    height: 4px; border-radius: 3px;
+    height: 3px; border-radius: 3px;
     background: currentColor;
-    box-shadow: 0 0 10px currentColor;
     animation: caretBlink 1s steps(2) infinite;
   }
   @keyframes caretBlink { 50% { opacity: 0.15; } }
 
-  .untyped { color: var(--text-untyped); opacity: 0.88; }
+    .untyped { color: var(--text-untyped); opacity: 0.88; }
 
-  .typed {
-    color: var(--color-correct);
-    text-shadow: 0 0 22px rgba(0, 245, 196, 0.55);
-  }
+  .typed { color: var(--color-correct); }
 
-  .literal-error {
-    color: var(--color-literal);
-    text-shadow: 0 0 22px rgba(255, 190, 61, 0.55);
-  }
+  .literal-error { color: var(--color-literal); }
 
   .wrong-error {
     color: var(--color-wrong);
-    text-shadow: 0 0 22px rgba(255, 61, 110, 0.55);
     animation: shake 0.22s ease;
   }
   @keyframes shake {
@@ -173,7 +155,6 @@
   </div>
 
   <div class="progress-wrap">
-    <span id="progress-count"></span>
     <span class="hint">Type the <strong>mirrored</strong> letter — a↔z, b↔y, c↔x…</span>
   </div>
 
@@ -251,7 +232,6 @@
   const wordDisplayElement = document.getElementById('word-display');
   const scoreElement = document.getElementById('score');
   const timeElement = document.getElementById('time');
-  const progressElement = document.getElementById('progress-count');
 
   function shuffle(arr) {
     const a = arr.slice();
@@ -290,15 +270,6 @@
     return gameWords[wordPointer++];
   }
 
-  function updateProgress() {
-    if (currentWordIsSpecial) {
-      progressElement.style.opacity = '0';
-    } else {
-      progressElement.style.opacity = '1';
-      progressElement.innerText = wordPointer + ' / ' + gameWords.length;
-    }
-  }
-
   function updateActiveLetter() {
     spanElements.forEach(s => s.classList.remove('current'));
     if (currentIndex < spanElements.length) {
@@ -326,12 +297,14 @@
 
   function completeWord() {
     isTransitioning = true;
+    const finalElapsed = (performance.now() - wordStartTime) / 1000;
     stopTimer();
+    timeElement.innerText = finalElapsed.toFixed(2) + 's';
     if (!currentWordIsSpecial) {
       score += 10;
       scoreElement.innerText = score;
     }
-    setTimeout(startNextWord, 350);
+    setTimeout(startNextWord, 600);
   }
 
   function autoAdvanceSpaces() {
@@ -363,7 +336,6 @@
       spanElements.push(span);
     }
 
-    updateProgress();
     startTimer();
 
     wordDisplayElement.classList.remove('pop-anim');
