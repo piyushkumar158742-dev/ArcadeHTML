@@ -156,6 +156,65 @@
     100% { transform: scale(1); opacity: 1; }
   }
   .pop-anim { animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+  /* VIRTUAL KEYBOARD STYLES */
+  .keyboard {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-1);
+    padding: 10px 5px 20px 5px;
+    display: none; /* Hidden by default on desktop */
+    flex-direction: column;
+    gap: 8px;
+    z-index: 10;
+    border-top: 1px solid var(--panel-border);
+  }
+
+  .key-row {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .key {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(0, 245, 196, 0.1);
+    color: var(--text-untyped);
+    border-radius: 6px;
+    padding: 16px 0;
+    flex: 1;
+    max-width: 9vw;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 500;
+    text-transform: lowercase;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.1s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .key:active, .key.active-touch {
+    background: var(--color-correct);
+    color: #000;
+    transform: scale(0.95);
+  }
+
+  @media (max-width: 768px) {
+    .keyboard {
+      display: flex; /* Show on mobile */
+    }
+    .progress-wrap {
+      bottom: auto;
+      top: 5rem; /* Move hint to the top so keyboard doesn't hide it */
+    }
+    .stage-wrap {
+      margin-bottom: 250px; /* Push game area up so it isn't hidden behind keyboard */
+    }
+  }
+  
 </style>
 </head>
 <body>
@@ -183,7 +242,8 @@
   <div class="progress-wrap">
     <span class="hint">Type the <strong>mirrored</strong> letter — a↔z, b↔y, c↔x…</span>
   </div>
-
+<div class="keyboard" id="keyboard"></div>
+  
 <script>
   // ===========================================================
   // Word bank — ~1000+ unique lowercase words across many themes
@@ -430,28 +490,11 @@
     return char;
   }
 
-  document.addEventListener('keydown', (e) => {
-    // ---- TEMP DEV SHORTCUT — press 8 to jump straight to the
-    // "play again" word (skipping all the way to the end of the
-    // sequence) without typing all ~1000 words. Remove this block
-    // when done testing. ----
-    if (e.key === '8') {
-      stopTimer();
-      stage = 'thanks';
-      startNextWord();
-      return;
-    }
-
-    if (e.key === 'Backspace' || e.key === ' ') {
-      e.preventDefault();
-    }
-
-    if (isTransitioning || e.ctrlKey || e.altKey || e.metaKey || e.key.length !== 1) {
-      return;
-    }
-
-    const pressedKey = e.key.toLowerCase();
-    if (!/^[a-z]$/.test(pressedKey)) return;
+// ===========================================================
+  // Core Typing Logic (used by both physical and virtual keys)
+  // ===========================================================
+  function processInput(pressedKey) {
+    if (isTransitioning) return;
 
     const targetChar = currentWord[currentIndex];
     const reversedKey = getReversedChar(pressedKey);
@@ -475,12 +518,74 @@
       triggerScreenShake();
       registerTypo();
     }
+  }
+
+  // Handle Physical Keyboard
+  document.addEventListener('keydown', (e) => {
+    if (e.key === '8') {
+      stopTimer();
+      stage = 'thanks';
+      startNextWord();
+      return;
+    }
+
+    if (e.key === 'Backspace' || e.key === ' ') {
+      e.preventDefault();
+    }
+
+    if (isTransitioning || e.ctrlKey || e.altKey || e.metaKey || e.key.length !== 1) {
+      return;
+    }
+
+    const pressedKey = e.key.toLowerCase();
+    if (!/^[a-z]$/.test(pressedKey)) return;
+
+    processInput(pressedKey);
   });
 
-  window.onload = () => {
-    resetGame();
-    startNextWord();
-  };
+  // ===========================================================
+  // Virtual Mobile Keyboard Setup
+  // ===========================================================
+  const keyboardLayout = [
+    ['q','w','e','r','t','y','u','i','o','p'],
+    ['a','s','d','f','g','h','j','k','l'],
+    ['z','x','c','v','b','n','m']
+  ];
+  
+  const keyboardEl = document.getElementById('keyboard');
+  
+  keyboardLayout.forEach(row => {
+    const rowEl = document.createElement('div');
+    rowEl.className = 'key-row';
+    
+    row.forEach(keyChar => {
+      const keyEl = document.createElement('div');
+      keyEl.className = 'key';
+      keyEl.textContent = keyChar;
+      
+      // Touch events for immediate response on mobile
+      keyEl.addEventListener('touchstart', (e) => {
+        e.preventDefault(); // prevent double-firing with mouse events
+        keyEl.classList.add('active-touch');
+        processInput(keyChar);
+      }, { passive: false });
+      
+      keyEl.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        keyEl.classList.remove('active-touch');
+      });
+
+      // Mouse events for desktop testing
+      keyEl.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        processInput(keyChar);
+      });
+
+      rowEl.appendChild(keyEl);
+    });
+    
+    keyboardEl.appendChild(rowEl);
+  });
 </script>
 </body>
 </html>
