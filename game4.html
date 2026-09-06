@@ -332,14 +332,20 @@
     typoElement.innerText = '0 typos';
   }
 
-  function animateScoreDrop(fromValue) {
-    const duration = 1800;
+  function animateScoreDrop(finalValue) {
+    const duration = 1400;
     const start = performance.now();
+    const overshoot = finalValue + Math.max(30, Math.round(finalValue * 0.6));
     function step(now) {
       const t = Math.min((now - start) / duration, 1);
       const eased = 1 - Math.pow(1 - t, 3);
-      statsScoreEl.innerText = Math.round(fromValue * (1 - eased));
-      if (t < 1) requestAnimationFrame(step);
+      const current = Math.round(overshoot - (overshoot - finalValue) * eased);
+      statsScoreEl.innerText = current;
+      if (t < 1) {
+        requestAnimationFrame(step);
+      } else {
+        statsScoreEl.innerText = finalValue;
+      }
     }
     requestAnimationFrame(step);
   }
@@ -494,13 +500,13 @@
   }
 
   document.addEventListener('keydown', (e) => {
-    // ---- TEMP DEV SHORTCUT — press 8 to jump near the end of the word
-    // list and preview the ending sequence without typing all ~1000
-    // words. Remove this block when done testing. ----
+    // ---- TEMP DEV SHORTCUT — press 8 to jump straight to the
+    // "play again" word (skipping all the way to the end of the
+    // sequence) without typing all ~1000 words. Remove this block
+    // when done testing. ----
     if (e.key === '8') {
       stopTimer();
-      wordPointer = Math.max(0, gameWords.length - 5);
-      stage = 'playing';
+      stage = 'thanks';
       startNextWord();
       return;
     }
