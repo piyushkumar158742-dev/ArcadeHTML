@@ -294,6 +294,7 @@
   let timerRaf = null;
 
   const wordDisplayElement = document.getElementById('word-display');
+  const wordCardEl = document.querySelector('.word-card');
   const scoreElement = document.getElementById('score');
   const typoElement = document.getElementById('typo-count');
   const timeElement = document.getElementById('time');
@@ -354,12 +355,14 @@
     statsAvgEl.innerText = avgTime.toFixed(2) + 's';
     statsTypoEl.innerText = typoCount;
     statsScoreEl.innerText = score;
+    wordCardEl.style.display = 'none';
     statsPanel.classList.add('visible');
     animateScoreDrop(score);
   }
 
   function hideStats() {
     statsPanel.classList.remove('visible');
+    wordCardEl.style.display = 'flex';
   }
 
   function getNextWord() {
@@ -423,7 +426,6 @@
     if (currentWord === SPECIAL_AGAIN) {
       // No "continue" step anymore — show the stats card, then
       // automatically reset and jump straight back into play.
-      wordDisplayElement.innerHTML = '';
       showStats();
       setTimeout(() => {
         hideStats();
