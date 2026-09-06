@@ -294,7 +294,7 @@
   let timerRaf = null;
 
   const wordDisplayElement = document.getElementById('word-display');
-  const wordCardEl = document.querySelector('.word-card');
+  const wordCardEl = wordDisplayElement.parentElement;
   const scoreElement = document.getElementById('score');
   const typoElement = document.getElementById('typo-count');
   const timeElement = document.getElementById('time');
