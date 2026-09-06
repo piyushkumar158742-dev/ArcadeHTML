@@ -10,7 +10,6 @@
 <style>
   :root {
     --bg-1: #05060d;
-    --bg-2: #0b0d1c;
     --text-untyped: #cdd3ee;
     --color-correct: #00f5c4;
     --color-literal: #ffbe3d;
@@ -19,7 +18,6 @@
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
   html, body { height: 100%; }
 
   body {
@@ -36,6 +34,14 @@
     position: relative;
     user-select: none;
   }
+
+  @keyframes screenShake {
+    10%, 90% { transform: translateX(-2px); }
+    20%, 80% { transform: translateX(4px); }
+    30%, 50%, 70% { transform: translateX(-8px); }
+    40%, 60% { transform: translateX(8px); }
+  }
+  body.screen-shake { animation: screenShake 0.4s; }
 
   .scanlines {
     position: fixed; inset: 0; pointer-events: none; z-index: 1; opacity: 0.35;
@@ -56,6 +62,11 @@
     font-size: 1.4rem; font-weight: 700; color: #ffffff;
     font-variant-numeric: tabular-nums;
   }
+  .typo-count {
+    font-size: 0.68rem; font-weight: 500; letter-spacing: 1px;
+    color: var(--color-wrong); opacity: 0.75;
+    font-variant-numeric: tabular-nums;
+  }
   #time { color: var(--color-correct); }
 
   .progress-wrap {
@@ -63,13 +74,48 @@
     display: flex; flex-direction: column; align-items: center; gap: 10px;
     z-index: 2;
   }
-   .hint {
+  .hint {
     font-size: 0.68rem; letter-spacing: 1px; color: rgba(205, 211, 238, 0.35);
     text-align: center; max-width: 90vw;
   }
   .hint strong { color: rgba(205, 211, 238, 0.6); }
 
-    .word-card {
+  .stage-wrap {
+    display: flex; flex-direction: column; align-items: center; gap: 22px;
+    z-index: 2; max-width: 92vw;
+  }
+
+  .stats-panel {
+    width: min(420px, 92vw);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--panel-border);
+    padding: 1.8rem 2rem;
+    display: flex; flex-direction: column; gap: 14px;
+    opacity: 0; transform: translateY(-10px) scale(0.97);
+    pointer-events: none;
+    max-height: 0; overflow: hidden;
+    transition: opacity 0.4s ease, transform 0.4s ease, max-height 0.4s ease, padding 0.4s ease, margin 0.4s ease;
+  }
+  .stats-panel.visible {
+    opacity: 1; transform: translateY(0) scale(1);
+    pointer-events: auto; max-height: 260px;
+  }
+  .stats-title {
+    font-size: 0.75rem; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--color-correct); text-align: center; margin-bottom: 4px;
+  }
+  .stats-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 0.85rem; color: rgba(205, 211, 238, 0.6);
+  }
+  .stats-row span:last-child {
+    color: #ffffff; font-weight: 700; font-variant-numeric: tabular-nums;
+  }
+  .stats-score-row { border-top: 1px dashed rgba(255,255,255,0.12); margin-top: 4px; padding-top: 10px; }
+  .stats-score-row span:last-child { font-size: 1.3rem; color: var(--color-correct); }
+
+  .word-card {
     position: relative;
     padding: clamp(2rem, 6vw, 4rem) clamp(1.5rem, 8vw, 5rem);
     border-radius: 24px;
@@ -77,7 +123,6 @@
     border: 1px solid var(--panel-border);
     max-width: 92vw;
     display: flex;
-    z-index: 2;
   }
 
   .word-display {
@@ -87,7 +132,8 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 4px;
+    align-items: baseline;
+    gap: 0.3em;
     text-transform: uppercase;
   }
 
@@ -95,14 +141,22 @@
     .word-display { font-size: 5.2rem; }
   }
 
-  .letter {
-    position: relative;
-    transition: color 0.1s ease, text-shadow 0.1s ease;
+  /* Letters of one real word are grouped so wrapping only ever happens
+     BETWEEN words, never in the middle of one. */
+  .word-group {
+    display: inline-flex;
+    gap: 4px;
+    white-space: nowrap;
   }
 
-  .letter.space-letter { width: 0.5em; }
+  .letter {
+    position: relative;
+    transition: color 0.1s ease;
+  }
 
-    .letter.current::after {
+  .letter.space-letter { width: 0.4em; }
+
+  .letter.current::after {
     content: '';
     position: absolute; left: 4%; right: 4%; bottom: -0.14em;
     height: 3px; border-radius: 3px;
@@ -111,24 +165,13 @@
   }
   @keyframes caretBlink { 50% { opacity: 0.15; } }
 
-    .untyped { color: var(--text-untyped); opacity: 0.88; }
-
+  .untyped { color: var(--text-untyped); opacity: 0.88; }
   .typed { color: var(--color-correct); }
-
   .literal-error { color: var(--color-literal); }
-
   .wrong-error {
     color: var(--color-wrong);
     animation: shake 0.22s ease;
   }
-
-  @keyframes screenShake {
-    10%, 90% { transform: translateX(-2px); }
-    20%, 80% { transform: translateX(4px); }
-    30%, 50%, 70% { transform: translateX(-8px); }
-    40%, 60% { transform: translateX(8px); }
-  }
-  body.screen-shake { animation: screenShake 0.4s; }
   @keyframes shake {
     0%, 100% { transform: translateY(0); }
     30% { transform: translateY(-3px); }
@@ -151,6 +194,7 @@
     <div class="hud-block">
       <span class="hud-label">Score</span>
       <span class="hud-value" id="score">0</span>
+      <span class="typo-count" id="typo-count">0 typos</span>
     </div>
     <div class="hud-block" style="align-items:flex-end;">
       <span class="hud-label">Time</span>
@@ -158,8 +202,17 @@
     </div>
   </div>
 
-  <div class="word-card">
-    <div id="word-display" class="word-display"></div>
+  <div class="stage-wrap">
+    <div class="stats-panel" id="stats-panel">
+      <div class="stats-title">Session Complete</div>
+      <div class="stats-row"><span>Average Time / Word</span><span id="stats-avg">0.00s</span></div>
+      <div class="stats-row"><span>Typos</span><span id="stats-typos">0</span></div>
+      <div class="stats-row stats-score-row"><span>Final Score</span><span id="stats-score">0</span></div>
+    </div>
+
+    <div class="word-card">
+      <div id="word-display" class="word-display"></div>
+    </div>
   </div>
 
   <div class="progress-wrap">
@@ -168,7 +221,7 @@
 
 <script>
   // ===========================================================
-  // Word bank — ~1000 unique lowercase words across many themes
+  // Word bank — ~1000+ unique lowercase words across many themes
   // ===========================================================
   const rawWords = `
     sun moon star sky cloud rain snow wind storm thunder lightning rainbow mountain valley canyon desert forest jungle meadow field prairie island beach shore coast ocean sea lake river stream creek waterfall cave cliff volcano glacier iceberg tundra swamp marsh
@@ -213,6 +266,7 @@
     pebble boulder gravel sand dune oasis spring geyser cavern grotto reef lagoon fjord bay cove strait channel gorge ridge summit
     umbrella wallet ticket passport luggage suitcase calendar diary journal envelope stamp postcard package parcel receipt invoice coupon voucher badge medal trophy award certificate diploma license permit contract agreement treaty alliance coalition federation republic monarchy empire colony settlement village hamlet town metropolis suburb district neighborhood community population census survey referendum citizen
     yogurt pancake waffle syrup mustard ketchup vinegar oatmeal cereal granola pretzel popcorn marshmallow caramel toffee biscuit muffin bagel croissant baguette tortilla burrito taco sushi ramen curry kebab falafel hummus salsa
+    robot ninja pirate wizard zombie alien spaceship treasure dungeon creature explorer adventure villain sidekick mascot gamer gadget drone cyborg android hacker coder pixel arcade console joystick controller avatar emoji podcast streamer meme viral trending playlist soundtrack sequel franchise cosplay fandom spoiler cliffhanger blockbuster dinosaur samurai knight sword
   `;
 
   const words = [...new Set(rawWords.split(/\s+/).filter(Boolean))];
@@ -222,24 +276,34 @@
   // ===========================================================
   const SPECIAL_THANKS = 'thank you for playing';
   const SPECIAL_AGAIN = 'play again';
+  const SPECIAL_CONTINUE = 'continue';
 
   let currentWord = '';
   let currentIndex = 0;
   let score = 0;
+  let typoCount = 0;
+  let totalTimeSpent = 0;
   let isTransitioning = false;
   let spanElements = [];
   let currentWordIsSpecial = false;
 
   let gameWords = [];
   let wordPointer = 0;
-  let stage = 'playing'; // 'playing' | 'thanks' | 'again'
+  let stage = 'playing'; // 'playing' | 'thanks' | 'again' | 'continue'
 
   let wordStartTime = 0;
   let timerRaf = null;
 
   const wordDisplayElement = document.getElementById('word-display');
   const scoreElement = document.getElementById('score');
+  const typoElement = document.getElementById('typo-count');
   const timeElement = document.getElementById('time');
+  const statsPanel = document.getElementById('stats-panel');
+  const statsAvgEl = document.getElementById('stats-avg');
+  const statsTypoEl = document.getElementById('stats-typos');
+  const statsScoreEl = document.getElementById('stats-score');
+
+  const TYPO_PENALTY = 2;
 
   function shuffle(arr) {
     const a = arr.slice();
@@ -250,12 +314,47 @@
     return a;
   }
 
+  function registerTypo() {
+    typoCount++;
+    typoElement.innerText = typoCount + (typoCount === 1 ? ' typo' : ' typos');
+    score = Math.max(0, score - TYPO_PENALTY);
+    scoreElement.innerText = score;
+  }
+
   function resetGame() {
     gameWords = shuffle(words);
     wordPointer = 0;
     stage = 'playing';
     score = 0;
+    typoCount = 0;
+    totalTimeSpent = 0;
     scoreElement.innerText = score;
+    typoElement.innerText = '0 typos';
+  }
+
+  function animateScoreDrop(fromValue) {
+    const duration = 1800;
+    const start = performance.now();
+    function step(now) {
+      const t = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      statsScoreEl.innerText = Math.round(fromValue * (1 - eased));
+      if (t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function showStats() {
+    const avgTime = gameWords.length > 0 ? (totalTimeSpent / gameWords.length) : 0;
+    statsAvgEl.innerText = avgTime.toFixed(2) + 's';
+    statsTypoEl.innerText = typoCount;
+    statsScoreEl.innerText = score;
+    statsPanel.classList.add('visible');
+    animateScoreDrop(score);
+  }
+
+  function hideStats() {
+    statsPanel.classList.remove('visible');
   }
 
   function getNextWord() {
@@ -273,6 +372,14 @@
       currentWordIsSpecial = true;
       return SPECIAL_AGAIN;
     }
+    if (stage === 'again') {
+      stage = 'continue';
+      currentWordIsSpecial = true;
+      showStats();
+      return SPECIAL_CONTINUE;
+    }
+    // stage === 'continue'
+    hideStats();
     resetGame();
     currentWordIsSpecial = false;
     return gameWords[wordPointer++];
@@ -290,12 +397,6 @@
     timerRaf = null;
   }
 
-  function triggerScreenShake() {
-    document.body.classList.remove('screen-shake');
-    void document.body.offsetWidth;
-    document.body.classList.add('screen-shake');
-  }
-
   function startTimer() {
     wordStartTime = performance.now();
     timeElement.innerText = '0.00s';
@@ -309,6 +410,12 @@
     timerRaf = requestAnimationFrame(updateTimer);
   }
 
+  function triggerScreenShake() {
+    document.body.classList.remove('screen-shake');
+    void document.body.offsetWidth;
+    document.body.classList.add('screen-shake');
+  }
+
   function completeWord() {
     isTransitioning = true;
     const finalElapsed = (performance.now() - wordStartTime) / 1000;
@@ -317,6 +424,7 @@
     if (!currentWordIsSpecial) {
       score += 10;
       scoreElement.innerText = score;
+      totalTimeSpent += finalElapsed;
     }
     setTimeout(startNextWord, 600);
   }
@@ -341,13 +449,31 @@
 
     wordDisplayElement.innerHTML = '';
 
+    // Letters belonging to one real word are grouped into a single
+    // nowrap flex container, so line-wrapping can only ever happen
+    // BETWEEN words, never through the middle of one.
+    let wordGroup = null;
     for (let i = 0; i < currentWord.length; i++) {
-      const span = document.createElement('span');
       const ch = currentWord[i];
-      span.innerText = ch === ' ' ? '\u00A0' : ch;
-      span.className = ch === ' ' ? 'letter untyped space-letter' : 'letter untyped';
-      wordDisplayElement.appendChild(span);
-      spanElements.push(span);
+      if (ch === ' ') {
+        const span = document.createElement('span');
+        span.innerText = '\u00A0';
+        span.className = 'letter untyped space-letter';
+        wordDisplayElement.appendChild(span);
+        spanElements.push(span);
+        wordGroup = null;
+      } else {
+        if (!wordGroup) {
+          wordGroup = document.createElement('span');
+          wordGroup.className = 'word-group';
+          wordDisplayElement.appendChild(wordGroup);
+        }
+        const span = document.createElement('span');
+        span.innerText = ch;
+        span.className = 'letter untyped';
+        wordGroup.appendChild(span);
+        spanElements.push(span);
+      }
     }
 
     startTimer();
@@ -369,8 +495,8 @@
 
   document.addEventListener('keydown', (e) => {
     // ---- TEMP DEV SHORTCUT — press 8 to jump near the end of the word
-    // list and preview the "thank you for playing" / "play again" ending
-    // without typing all ~1000 words. Remove this block when done testing. ----
+    // list and preview the ending sequence without typing all ~1000
+    // words. Remove this block when done testing. ----
     if (e.key === '8') {
       stopTimer();
       wordPointer = Math.max(0, gameWords.length - 5);
@@ -404,11 +530,13 @@
       currentSpan.classList.remove('untyped', 'wrong-error', 'typed');
       currentSpan.classList.add('literal-error');
       updateActiveLetter();
+      registerTypo();
     } else {
       currentSpan.classList.remove('untyped', 'literal-error', 'typed');
       currentSpan.classList.add('wrong-error');
       updateActiveLetter();
       triggerScreenShake();
+      registerTypo();
     }
   });
 
