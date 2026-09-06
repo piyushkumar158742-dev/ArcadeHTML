@@ -121,6 +121,14 @@
     color: var(--color-wrong);
     animation: shake 0.22s ease;
   }
+
+  @keyframes screenShake {
+    10%, 90% { transform: translateX(-2px); }
+    20%, 80% { transform: translateX(4px); }
+    30%, 50%, 70% { transform: translateX(-8px); }
+    40%, 60% { transform: translateX(8px); }
+  }
+  body.screen-shake { animation: screenShake 0.4s; }
   @keyframes shake {
     0%, 100% { transform: translateY(0); }
     30% { transform: translateY(-3px); }
@@ -282,6 +290,12 @@
     timerRaf = null;
   }
 
+  function triggerScreenShake() {
+    document.body.classList.remove('screen-shake');
+    void document.body.offsetWidth;
+    document.body.classList.add('screen-shake');
+  }
+
   function startTimer() {
     wordStartTime = performance.now();
     timeElement.innerText = '0.00s';
@@ -354,6 +368,17 @@
   }
 
   document.addEventListener('keydown', (e) => {
+    // ---- TEMP DEV SHORTCUT — press 8 to jump near the end of the word
+    // list and preview the "thank you for playing" / "play again" ending
+    // without typing all ~1000 words. Remove this block when done testing. ----
+    if (e.key === '8') {
+      stopTimer();
+      wordPointer = Math.max(0, gameWords.length - 5);
+      stage = 'playing';
+      startNextWord();
+      return;
+    }
+
     if (e.key === 'Backspace' || e.key === ' ') {
       e.preventDefault();
     }
@@ -376,13 +401,14 @@
       currentIndex++;
       autoAdvanceSpaces();
     } else if (pressedKey === targetChar) {
-      currentSpan.classList.remove('untyped');
+      currentSpan.classList.remove('untyped', 'wrong-error', 'typed');
       currentSpan.classList.add('literal-error');
       updateActiveLetter();
     } else {
-      currentSpan.classList.remove('untyped');
+      currentSpan.classList.remove('untyped', 'literal-error', 'typed');
       currentSpan.classList.add('wrong-error');
       updateActiveLetter();
+      triggerScreenShake();
     }
   });
 
