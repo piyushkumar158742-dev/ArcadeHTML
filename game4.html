@@ -276,7 +276,6 @@
   // ===========================================================
   const SPECIAL_THANKS = 'thank you for playing';
   const SPECIAL_AGAIN = 'play again';
-  const SPECIAL_CONTINUE = 'continue';
 
   let currentWord = '';
   let currentIndex = 0;
@@ -289,7 +288,7 @@
 
   let gameWords = [];
   let wordPointer = 0;
-  let stage = 'playing'; // 'playing' | 'thanks' | 'again' | 'continue'
+  let stage = 'playing'; // 'playing' | 'thanks' | 'again'
 
   let wordStartTime = 0;
   let timerRaf = null;
@@ -373,22 +372,10 @@
       currentWordIsSpecial = true;
       return SPECIAL_THANKS;
     }
-    if (stage === 'thanks') {
-      stage = 'again';
-      currentWordIsSpecial = true;
-      return SPECIAL_AGAIN;
-    }
-    if (stage === 'again') {
-      stage = 'continue';
-      currentWordIsSpecial = true;
-      showStats();
-      return SPECIAL_CONTINUE;
-    }
-    // stage === 'continue'
-    hideStats();
-    resetGame();
-    currentWordIsSpecial = false;
-    return gameWords[wordPointer++];
+    // stage === 'thanks'
+    stage = 'again';
+    currentWordIsSpecial = true;
+    return SPECIAL_AGAIN;
   }
 
   function updateActiveLetter() {
@@ -432,6 +419,20 @@
       scoreElement.innerText = score;
       totalTimeSpent += finalElapsed;
     }
+
+    if (currentWord === SPECIAL_AGAIN) {
+      // No "continue" step anymore — show the stats card, then
+      // automatically reset and jump straight back into play.
+      wordDisplayElement.innerHTML = '';
+      showStats();
+      setTimeout(() => {
+        hideStats();
+        resetGame();
+        startNextWord();
+      }, 2200);
+      return;
+    }
+
     setTimeout(startNextWord, 600);
   }
 
