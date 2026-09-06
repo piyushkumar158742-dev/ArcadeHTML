@@ -83,37 +83,9 @@
   .stage-wrap {
     display: flex; flex-direction: column; align-items: center; gap: 22px;
     z-index: 2; max-width: 92vw;
+    transition: opacity 0.5s ease;
   }
-
-  .stats-panel {
-    width: min(420px, 92vw);
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid var(--panel-border);
-    padding: 1.8rem 2rem;
-    display: flex; flex-direction: column; gap: 14px;
-    opacity: 0; transform: translateY(-10px) scale(0.97);
-    pointer-events: none;
-    max-height: 0; overflow: hidden;
-    transition: opacity 0.4s ease, transform 0.4s ease, max-height 0.4s ease, padding 0.4s ease, margin 0.4s ease;
-  }
-  .stats-panel.visible {
-    opacity: 1; transform: translateY(0) scale(1);
-    pointer-events: auto; max-height: 260px;
-  }
-  .stats-title {
-    font-size: 0.75rem; letter-spacing: 3px; text-transform: uppercase;
-    color: var(--color-correct); text-align: center; margin-bottom: 4px;
-  }
-  .stats-row {
-    display: flex; justify-content: space-between; align-items: baseline;
-    font-size: 0.85rem; color: rgba(205, 211, 238, 0.6);
-  }
-  .stats-row span:last-child {
-    color: #ffffff; font-weight: 700; font-variant-numeric: tabular-nums;
-  }
-  .stats-score-row { border-top: 1px dashed rgba(255,255,255,0.12); margin-top: 4px; padding-top: 10px; }
-  .stats-score-row span:last-child { font-size: 1.3rem; color: var(--color-correct); }
+  .stage-wrap.fade-out { opacity: 0; }
 
   .word-card {
     position: relative;
@@ -202,14 +174,7 @@
     </div>
   </div>
 
-  <div class="stage-wrap">
-    <div class="stats-panel" id="stats-panel">
-      <div class="stats-title">Session Complete</div>
-      <div class="stats-row"><span>Average Time / Word</span><span id="stats-avg">0.00s</span></div>
-      <div class="stats-row"><span>Typos</span><span id="stats-typos">0</span></div>
-      <div class="stats-row stats-score-row"><span>Final Score</span><span id="stats-score">0</span></div>
-    </div>
-
+  <div class="stage-wrap" id="stage-wrap">
     <div class="word-card">
       <div id="word-display" class="word-display"></div>
     </div>
@@ -294,14 +259,10 @@
   let timerRaf = null;
 
   const wordDisplayElement = document.getElementById('word-display');
-  const wordCardEl = wordDisplayElement.parentElement;
+  const stageWrapEl = document.getElementById('stage-wrap');
   const scoreElement = document.getElementById('score');
   const typoElement = document.getElementById('typo-count');
   const timeElement = document.getElementById('time');
-  const statsPanel = document.getElementById('stats-panel');
-  const statsAvgEl = document.getElementById('stats-avg');
-  const statsTypoEl = document.getElementById('stats-typos');
-  const statsScoreEl = document.getElementById('stats-score');
 
   const TYPO_PENALTY = 2;
 
@@ -330,39 +291,6 @@
     totalTimeSpent = 0;
     scoreElement.innerText = score;
     typoElement.innerText = '0 typos';
-  }
-
-  function animateScoreDrop(finalValue) {
-    const duration = 1400;
-    const start = performance.now();
-    const overshoot = finalValue + Math.max(30, Math.round(finalValue * 0.6));
-    function step(now) {
-      const t = Math.min((now - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - t, 3);
-      const current = Math.round(overshoot - (overshoot - finalValue) * eased);
-      statsScoreEl.innerText = current;
-      if (t < 1) {
-        requestAnimationFrame(step);
-      } else {
-        statsScoreEl.innerText = finalValue;
-      }
-    }
-    requestAnimationFrame(step);
-  }
-
-  function showStats() {
-    const avgTime = gameWords.length > 0 ? (totalTimeSpent / gameWords.length) : 0;
-    statsAvgEl.innerText = avgTime.toFixed(2) + 's';
-    statsTypoEl.innerText = typoCount;
-    statsScoreEl.innerText = score;
-    wordCardEl.style.display = 'none';
-    statsPanel.classList.add('visible');
-    animateScoreDrop(score);
-  }
-
-  function hideStats() {
-    statsPanel.classList.remove('visible');
-    wordCardEl.style.display = 'flex';
   }
 
   function getNextWord() {
@@ -424,14 +352,14 @@
     }
 
     if (currentWord === SPECIAL_AGAIN) {
-      // No "continue" step anymore — show the stats card, then
-      // automatically reset and jump straight back into play.
-      showStats();
+      // No stats panel anymore — just fade the screen to black,
+      // reset everything behind the scenes, then fade back in.
+      stageWrapEl.classList.add('fade-out');
       setTimeout(() => {
-        hideStats();
         resetGame();
         startNextWord();
-      }, 2200);
+        stageWrapEl.classList.remove('fade-out');
+      }, 500);
       return;
     }
 
