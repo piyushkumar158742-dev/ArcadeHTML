@@ -303,7 +303,18 @@
     .game-nav-btn:nth-child(3) { bottom: 168px; transition-delay: 0.08s; }
     .game-nav.mobile-expanded .game-nav-btn { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
 
-    .main-stage { padding-bottom: 60px; }
+    /* ========================================================= */
+    /* NEW: Changed layout properties to push keyboard to bottom */
+    /* ========================================================= */
+    .main-stage { 
+      padding-bottom: 85px; /* Increased bottom padding so keyboard clearly sits above the game nav footer */
+    }
+    .stage-wrap {
+      margin: auto 0; /* Centers the word vertically in the remaining space while pushing the keyboard down */
+    }
+    .keyboard-wrap {
+      margin-bottom: 0; /* Ensures the keyboard hugs the bottom padding */
+    }
   }
 
   @media (max-height: 620px) {
