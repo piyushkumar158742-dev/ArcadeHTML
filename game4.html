@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reverse Typer</title>
+<meta name="theme-color" content="#05060d">
+<title>Reverse Typer — Cosmic Arcade</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -17,7 +18,7 @@
     --panel-border: rgba(0, 245, 196, 0.18);
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; }
 
   body {
@@ -28,8 +29,9 @@
     color: var(--text-untyped);
     font-family: 'JetBrains Mono', monospace;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
     overflow: hidden;
     position: relative;
     user-select: none;
@@ -48,57 +50,110 @@
     background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 3px);
   }
 
+  /* ============ Top bar (title + settings) ============ */
+  .topbar {
+    flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 1.4rem;
+    z-index: 20; position: relative;
+  }
+  .game-title {
+    font-size: clamp(0.85rem, 2.4vw, 1.05rem);
+    font-weight: 800; letter-spacing: 3px; text-transform: uppercase;
+    color: #ffffff;
+  }
+  .settings-btn {
+    width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--panel-border); color: var(--text-untyped);
+    cursor: pointer; transition: background .2s ease, color .2s ease, border-color .2s ease;
+  }
+  .settings-btn:hover { background: rgba(0,245,196,0.1); color: var(--color-correct); border-color: var(--color-correct); }
+  .settings-btn svg { width: 16px; height: 16px; }
+
+  .settings-panel {
+    position: fixed; top: 4.2rem; right: 1.4rem;
+    width: min(240px, 80vw);
+    background: rgba(8, 10, 20, 0.97);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--panel-border); border-radius: 14px;
+    padding: 14px; z-index: 40;
+    opacity: 0; pointer-events: none; transform: translateY(-8px);
+    transition: opacity .2s ease, transform .2s ease;
+  }
+  .settings-panel.open { opacity: 1; pointer-events: auto; transform: translateY(0); }
+  .settings-panel h2 {
+    font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase;
+    color: rgba(205,211,238,0.5); margin-bottom: 10px; font-weight: 700;
+  }
+  .settings-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; }
+  .settings-row span { font-size: 0.82rem; color: var(--text-untyped); }
+  .settings-toggle {
+    width: 36px; height: 20px; border-radius: 20px;
+    background: rgba(255,255,255,0.1); border: 1px solid var(--panel-border);
+    position: relative; cursor: pointer; transition: background .2s ease; flex-shrink: 0;
+  }
+  .settings-toggle::after {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--text-untyped); transition: transform .2s ease, background .2s ease;
+  }
+  .settings-toggle.on { background: rgba(0,245,196,0.25); border-color: var(--color-correct); }
+  .settings-toggle.on::after { transform: translateX(16px); background: var(--color-correct); }
+
+  /* ============ HUD ============ */
   .hud {
-    position: fixed; top: 2rem; left: 2rem; right: 2rem;
+    flex: 0 0 auto;
     display: flex; justify-content: space-between; align-items: flex-start;
-    z-index: 2; pointer-events: none;
+    padding: 0 1.4rem;
+    z-index: 2;
   }
   .hud-block { display: flex; flex-direction: column; gap: 2px; }
   .hud-label {
-    font-size: 0.65rem; letter-spacing: 3px; text-transform: uppercase;
+    font-size: 0.62rem; letter-spacing: 3px; text-transform: uppercase;
     color: rgba(205, 211, 238, 0.45); font-weight: 500;
   }
   .hud-value {
-    font-size: 1.4rem; font-weight: 700; color: #ffffff;
+    font-size: clamp(1.1rem, 3.4vw, 1.4rem); font-weight: 700; color: #ffffff;
     font-variant-numeric: tabular-nums;
   }
   .typo-count {
-    font-size: 0.68rem; font-weight: 500; letter-spacing: 1px;
+    font-size: 0.65rem; font-weight: 500; letter-spacing: 1px;
     color: var(--color-wrong); opacity: 0.75;
     font-variant-numeric: tabular-nums;
   }
   #time { color: var(--color-correct); }
 
-  .progress-wrap {
-    position: fixed; bottom: 2.2rem; left: 50%; transform: translateX(-50%);
-    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  /* ============ Main stage ============ */
+  .main-stage {
+    flex: 1; min-height: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: clamp(14px, 3vh, 26px);
+    padding: 0.5rem 3vw;
     z-index: 2;
   }
-  .hint {
-    font-size: 0.68rem; letter-spacing: 1px; color: rgba(205, 211, 238, 0.35);
-    text-align: center; max-width: 90vw;
-  }
-  .hint strong { color: rgba(205, 211, 238, 0.6); }
 
   .stage-wrap {
-    display: flex; flex-direction: column; align-items: center; gap: 22px;
-    z-index: 2; max-width: 92vw;
+    display: flex; flex-direction: column; align-items: center; gap: clamp(14px, 3vh, 22px);
+    z-index: 2; width: 100%; max-width: 900px;
     transition: opacity 0.5s ease;
   }
   .stage-wrap.fade-out { opacity: 0; }
 
   .word-card {
     position: relative;
-    padding: clamp(2rem, 6vw, 4rem) clamp(1.5rem, 8vw, 5rem);
-    border-radius: 24px;
+    padding: clamp(1.2rem, 4vh, 2.6rem) clamp(1rem, 6vw, 3.5rem);
+    border-radius: 22px;
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid var(--panel-border);
-    max-width: 92vw;
+    width: 100%;
     display: flex;
+    justify-content: center;
   }
 
   .word-display {
-    font-size: 8vw;
+    font-size: 3rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     display: flex;
@@ -107,25 +162,12 @@
     align-items: baseline;
     gap: 0.3em;
     text-transform: uppercase;
+    max-width: 100%;
   }
 
-  @media (min-width: 1200px) {
-    .word-display { font-size: 5.2rem; }
-  }
+  .word-group { display: inline-flex; gap: 4px; white-space: nowrap; }
 
-  /* Letters of one real word are grouped so wrapping only ever happens
-     BETWEEN words, never in the middle of one. */
-  .word-group {
-    display: inline-flex;
-    gap: 4px;
-    white-space: nowrap;
-  }
-
-  .letter {
-    position: relative;
-    transition: color 0.1s ease;
-  }
-
+  .letter { position: relative; transition: color 0.1s ease; }
   .letter.space-letter { width: 0.4em; }
 
   .letter.current::after {
@@ -140,10 +182,7 @@
   .untyped { color: var(--text-untyped); opacity: 0.88; }
   .typed { color: var(--color-correct); }
   .literal-error { color: var(--color-literal); }
-  .wrong-error {
-    color: var(--color-wrong);
-    animation: shake 0.22s ease;
-  }
+  .wrong-error { color: var(--color-wrong); animation: shake 0.22s ease; }
   @keyframes shake {
     0%, 100% { transform: translateY(0); }
     30% { transform: translateY(-3px); }
@@ -156,11 +195,144 @@
     100% { transform: scale(1); opacity: 1; }
   }
   .pop-anim { animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+  /* ============ On-screen keyboard ============ */
+  .hint {
+    font-size: 0.66rem; letter-spacing: 1px; color: rgba(205, 211, 238, 0.35);
+    text-align: center; max-width: 90vw;
+  }
+  .hint strong { color: rgba(205, 211, 238, 0.6); }
+
+  .keyboard-wrap {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    width: 100%; max-width: 640px;
+  }
+  .keyboard {
+    display: flex; flex-direction: column; gap: clamp(5px, 1vh, 8px);
+    width: 100%; align-items: center;
+  }
+  .kb-row { display: flex; gap: clamp(4px, 1vw, 7px); justify-content: center; width: 100%; }
+  .kb-key {
+    flex: 1 1 0;
+    max-width: 46px;
+    aspect-ratio: 1 / 1;
+    min-width: 24px;
+    border-radius: 8px;
+    border: 1px solid var(--panel-border);
+    background: rgba(255,255,255,0.03);
+    color: var(--text-untyped);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: clamp(0.68rem, 2.6vw, 0.95rem);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .1s ease, color .1s ease, border-color .1s ease, transform .08s ease;
+  }
+  .kb-key:hover { background: rgba(0,245,196,0.08); border-color: rgba(0,245,196,0.35); color: #fff; }
+  .kb-key:active, .kb-key.pressed {
+    background: rgba(0,245,196,0.22); border-color: var(--color-correct);
+    color: var(--color-correct); transform: scale(0.92);
+  }
+  .external-kb-note {
+    font-size: 0.62rem; letter-spacing: 1.5px; text-transform: uppercase;
+    color: rgba(0, 245, 196, 0.55); text-align: center;
+  }
+
+  /* ============ Bottom game nav (shared arcade chrome) ============ */
+  .game-nav {
+    position: fixed; left: 50%; bottom: 14px;
+    transform: translateX(-50%);
+    display: flex; align-items: center; gap: 4px;
+    background: rgba(8, 10, 20, 0.97);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--panel-border); padding: 6px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5); z-index: 30;
+    border-radius: 50px;
+  }
+  .game-nav-btn {
+    background: transparent; border: none; color: var(--text-untyped);
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: background .2s ease, color .2s ease;
+  }
+  .game-nav-btn svg { width: 16px; height: 16px; }
+  .game-nav-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+  .game-nav-btn.random-btn { color: var(--color-literal); }
+  .game-nav-btn.random-btn:hover { background: rgba(255,190,61,0.14); }
+
+  @media (min-width: 992px) {
+    .game-nav {
+      opacity: 0; transform: translate(-50%, 150%);
+      transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+      pointer-events: none;
+    }
+    .game-nav.desktop-visible { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  }
+
+  @media (max-width: 991px) {
+    .game-nav {
+      left: auto; right: 16px; transform: none;
+      width: 50px; height: 50px; padding: 0;
+      background: transparent; border: none; box-shadow: none;
+      backdrop-filter: none; -webkit-backdrop-filter: none;
+      cursor: pointer;
+    }
+    .game-nav::before {
+      content: ''; position: absolute; inset: 0; border-radius: 14px;
+      background: rgba(8, 10, 20, 0.97);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--panel-border);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%2300f5c4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='3' y='3' width='18' height='18' rx='4'%3E%3C/rect%3E%3Ccircle cx='8' cy='8' r='1.3' fill='%2300f5c4' stroke='none'%3E%3C/circle%3E%3Ccircle cx='16' cy='8' r='1.3' fill='%2300f5c4' stroke='none'%3E%3C/circle%3E%3Ccircle cx='12' cy='12' r='1.3' fill='%2300f5c4' stroke='none'%3E%3C/circle%3E%3Ccircle cx='8' cy='16' r='1.3' fill='%2300f5c4' stroke='none'%3E%3C/circle%3E%3Ccircle cx='16' cy='16' r='1.3' fill='%2300f5c4' stroke='none'%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: center; background-size: 20px 20px;
+      transition: opacity 0.25s ease;
+    }
+    .game-nav.mobile-expanded::before { opacity: 0; }
+    .game-nav-btn {
+      position: absolute; right: 0; bottom: 56px;
+      width: 46px; height: 46px; border-radius: 14px;
+      background: rgba(8, 10, 20, 0.97);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--panel-border);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+      opacity: 0; transform: translateY(14px) scale(0.85); pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.32s cubic-bezier(0.2,0.8,0.2,1);
+    }
+    .game-nav-btn:nth-child(1) { bottom: 56px; transition-delay: 0s; }
+    .game-nav-btn:nth-child(2) { bottom: 112px; transition-delay: 0.04s; }
+    .game-nav-btn:nth-child(3) { bottom: 168px; transition-delay: 0.08s; }
+    .game-nav.mobile-expanded .game-nav-btn { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+
+    .main-stage { padding-bottom: 60px; }
+  }
+
+  @media (max-height: 620px) {
+    .hint, .external-kb-note { display: none; }
+  }
 </style>
 </head>
-<body>
+<body data-game-index="3">
 
   <div class="scanlines"></div>
+
+  <div class="topbar">
+    <span class="game-title">Reverse Typer</span>
+    <button id="settings-btn" class="settings-btn" aria-label="Settings" aria-haspopup="true" aria-expanded="false" type="button">
+      <svg viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="5" r="1.6" fill="currentColor"></circle>
+        <circle cx="12" cy="12" r="1.6" fill="currentColor"></circle>
+        <circle cx="12" cy="19" r="1.6" fill="currentColor"></circle>
+      </svg>
+    </button>
+  </div>
+
+  <div class="settings-panel" id="settings-panel" role="dialog" aria-label="Settings">
+    <h2>Settings</h2>
+    <div class="settings-row">
+      <span>Sound</span>
+      <button class="settings-toggle" id="sound-toggle" role="switch" aria-checked="true" type="button"></button>
+    </div>
+  </div>
 
   <div class="hud">
     <div class="hud-block">
@@ -174,15 +346,77 @@
     </div>
   </div>
 
-  <div class="stage-wrap" id="stage-wrap">
-    <div class="word-card">
-      <div id="word-display" class="word-display"></div>
+  <div class="main-stage">
+    <div class="stage-wrap" id="stage-wrap">
+      <div class="word-card">
+        <div id="word-display" class="word-display"></div>
+      </div>
+    </div>
+
+    <div class="keyboard-wrap">
+      <span class="hint">Type the <strong>mirrored</strong> letter — a↔z, b↔y, c↔x…</span>
+
+      <div class="keyboard" id="keyboard">
+        <div class="kb-row">
+          <button class="kb-key" data-key="q" type="button">Q</button>
+          <button class="kb-key" data-key="w" type="button">W</button>
+          <button class="kb-key" data-key="e" type="button">E</button>
+          <button class="kb-key" data-key="r" type="button">R</button>
+          <button class="kb-key" data-key="t" type="button">T</button>
+          <button class="kb-key" data-key="y" type="button">Y</button>
+          <button class="kb-key" data-key="u" type="button">U</button>
+          <button class="kb-key" data-key="i" type="button">I</button>
+          <button class="kb-key" data-key="o" type="button">O</button>
+          <button class="kb-key" data-key="p" type="button">P</button>
+        </div>
+        <div class="kb-row">
+          <button class="kb-key" data-key="a" type="button">A</button>
+          <button class="kb-key" data-key="s" type="button">S</button>
+          <button class="kb-key" data-key="d" type="button">D</button>
+          <button class="kb-key" data-key="f" type="button">F</button>
+          <button class="kb-key" data-key="g" type="button">G</button>
+          <button class="kb-key" data-key="h" type="button">H</button>
+          <button class="kb-key" data-key="j" type="button">J</button>
+          <button class="kb-key" data-key="k" type="button">K</button>
+          <button class="kb-key" data-key="l" type="button">L</button>
+        </div>
+        <div class="kb-row">
+          <button class="kb-key" data-key="z" type="button">Z</button>
+          <button class="kb-key" data-key="x" type="button">X</button>
+          <button class="kb-key" data-key="c" type="button">C</button>
+          <button class="kb-key" data-key="v" type="button">V</button>
+          <button class="kb-key" data-key="b" type="button">B</button>
+          <button class="kb-key" data-key="n" type="button">N</button>
+          <button class="kb-key" data-key="m" type="button">M</button>
+        </div>
+      </div>
+
+      <span class="external-kb-note">External Keyboards Are Supported</span>
     </div>
   </div>
 
-  <div class="progress-wrap">
-    <span class="hint">Type the <strong>mirrored</strong> letter — a↔z, b↔y, c↔x…</span>
-  </div>
+  <nav class="game-nav" id="game-nav" aria-label="Game navigation" tabindex="0">
+    <button class="game-nav-btn" id="back-game-btn" aria-label="Previous game" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M16.5 5 7.5 12l9 7Z"></path>
+      </svg>
+    </button>
+    <button class="game-nav-btn random-btn" id="random-game-btn" aria-label="Random game" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="4"></rect>
+        <circle cx="8" cy="8" r="1.3" fill="currentColor" stroke="none"></circle>
+        <circle cx="16" cy="8" r="1.3" fill="currentColor" stroke="none"></circle>
+        <circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"></circle>
+        <circle cx="8" cy="16" r="1.3" fill="currentColor" stroke="none"></circle>
+        <circle cx="16" cy="16" r="1.3" fill="currentColor" stroke="none"></circle>
+      </svg>
+    </button>
+    <button class="game-nav-btn" id="next-game-btn" aria-label="Next game" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7.5 5l9 7-9 7Z"></path>
+      </svg>
+    </button>
+  </nav>
 
 <script>
   // ===========================================================
@@ -241,6 +475,7 @@
   // ===========================================================
   const SPECIAL_THANKS = 'thank you for playing';
   const SPECIAL_AGAIN = 'play again';
+  const TYPO_PENALTY = 2;
 
   let currentWord = '';
   let currentIndex = 0;
@@ -259,12 +494,12 @@
   let timerRaf = null;
 
   const wordDisplayElement = document.getElementById('word-display');
+  const wordCardEl = wordDisplayElement.parentElement;
   const stageWrapEl = document.getElementById('stage-wrap');
   const scoreElement = document.getElementById('score');
   const typoElement = document.getElementById('typo-count');
   const timeElement = document.getElementById('time');
-
-  const TYPO_PENALTY = 2;
+  const keyboardEl = document.getElementById('keyboard');
 
   function shuffle(arr) {
     const a = arr.slice();
@@ -352,8 +587,6 @@
     }
 
     if (currentWord === SPECIAL_AGAIN) {
-      // No stats panel anymore — just fade the screen to black,
-      // reset everything behind the scenes, then fade back in.
       stageWrapEl.classList.add('fade-out');
       setTimeout(() => {
         resetGame();
@@ -378,6 +611,25 @@
     }
   }
 
+  function fitWordSize() {
+    const cardStyles = getComputedStyle(wordCardEl);
+    const paddingX = parseFloat(cardStyles.paddingLeft) + parseFloat(cardStyles.paddingRight);
+    const availableWidth = Math.max(wordCardEl.clientWidth - paddingX, 100);
+    const segments = currentWord.split(' ').filter(Boolean);
+    const longest = segments.reduce((m, s) => Math.max(m, s.length), 1);
+    const CHAR_RATIO = 0.66;
+    let fontSize = availableWidth / (longest * CHAR_RATIO);
+    const viewportCap = window.innerWidth < 640 ? 56 : 92;
+    fontSize = Math.max(24, Math.min(fontSize, viewportCap));
+    wordDisplayElement.style.fontSize = fontSize + 'px';
+  }
+
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(fitWordSize, 120);
+  });
+
   function startNextWord() {
     currentWord = getNextWord();
     currentIndex = 0;
@@ -386,9 +638,6 @@
 
     wordDisplayElement.innerHTML = '';
 
-    // Letters belonging to one real word are grouped into a single
-    // nowrap flex container, so line-wrapping can only ever happen
-    // BETWEEN words, never through the middle of one.
     let wordGroup = null;
     for (let i = 0; i < currentWord.length; i++) {
       const ch = currentWord[i];
@@ -413,6 +662,7 @@
       }
     }
 
+    fitWordSize();
     startTimer();
 
     wordDisplayElement.classList.remove('pop-anim');
@@ -430,33 +680,23 @@
     return char;
   }
 
-  document.addEventListener('keydown', (e) => {
-    // ---- TEMP DEV SHORTCUT — press 8 to jump straight to the
-    // "play again" word (skipping all the way to the end of the
-    // sequence) without typing all ~1000 words. Remove this block
-    // when done testing. ----
-    if (e.key === '8') {
-      stopTimer();
-      stage = 'thanks';
-      startNextWord();
-      return;
-    }
+  function flashKey(letter) {
+    const btn = keyboardEl.querySelector('.kb-key[data-key="' + letter + '"]');
+    if (!btn) return;
+    btn.classList.add('pressed');
+    setTimeout(() => btn.classList.remove('pressed'), 120);
+  }
 
-    if (e.key === 'Backspace' || e.key === ' ') {
-      e.preventDefault();
-    }
-
-    if (isTransitioning || e.ctrlKey || e.altKey || e.metaKey || e.key.length !== 1) {
-      return;
-    }
-
-    const pressedKey = e.key.toLowerCase();
+  function processKey(pressedKey) {
+    if (isTransitioning) return;
     if (!/^[a-z]$/.test(pressedKey)) return;
 
     const targetChar = currentWord[currentIndex];
     const reversedKey = getReversedChar(pressedKey);
     const currentSpan = spanElements[currentIndex];
     if (!currentSpan) return;
+
+    flashKey(pressedKey);
 
     if (reversedKey === targetChar) {
       currentSpan.classList.remove('untyped', 'literal-error', 'wrong-error');
@@ -475,7 +715,139 @@
       triggerScreenShake();
       registerTypo();
     }
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === '8') {
+      stopTimer();
+      stage = 'thanks';
+      startNextWord();
+      return;
+    }
+
+    if (e.key === 'Backspace' || e.key === ' ') {
+      e.preventDefault();
+    }
+
+    if (isTransitioning || e.ctrlKey || e.altKey || e.metaKey || e.key.length !== 1) {
+      return;
+    }
+
+    processKey(e.key.toLowerCase());
   });
+
+  keyboardEl.querySelectorAll('.kb-key').forEach(btn => {
+    btn.addEventListener('click', () => processKey(btn.dataset.key));
+  });
+
+  (function () {
+    const settingsBtn = document.getElementById('settings-btn');
+    const settingsPanel = document.getElementById('settings-panel');
+    const soundToggle = document.getElementById('sound-toggle');
+    let soundOn = true;
+
+    function setToggleState(btn, on) {
+      if (!btn) return;
+      btn.classList.toggle('on', on);
+      btn.setAttribute('aria-checked', on ? 'true' : 'false');
+    }
+    setToggleState(soundToggle, soundOn);
+
+    if (settingsBtn && settingsPanel) {
+      settingsBtn.addEventListener('click', () => {
+        const open = settingsPanel.classList.toggle('open');
+        settingsBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      document.addEventListener('click', (e) => {
+        if (settingsPanel.classList.contains('open') &&
+            !settingsPanel.contains(e.target) &&
+            !settingsBtn.contains(e.target)) {
+          settingsPanel.classList.remove('open');
+          settingsBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+    if (soundToggle) {
+      soundToggle.addEventListener('click', () => {
+        soundOn = !soundOn;
+        setToggleState(soundToggle, soundOn);
+      });
+    }
+
+    const GAMES = [
+      { name: "Cosmic Calendar", url: "index.html" },
+      { name: "Block Market", url: "game2.html" },
+      { name: "Stop at 5.000", url: "game3.html" },
+      { name: "Reverse Typer", url: "game4.html" }
+    ];
+    const currentGameIndex = parseInt(document.body.getAttribute('data-game-index'), 10) || 0;
+
+    function loadGame(idx) {
+      idx = ((idx % GAMES.length) + GAMES.length) % GAMES.length;
+      if (idx === currentGameIndex) return;
+      if (window.innerWidth < 992) { sessionStorage.setItem('navExpanded', '1'); }
+      window.location.href = GAMES[idx].url;
+    }
+
+    function wireNavButton(id, handler) {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('click', handler);
+    }
+    wireNavButton('back-game-btn', () => loadGame(currentGameIndex - 1));
+    wireNavButton('random-game-btn', () => {
+      let idx;
+      do { idx = Math.floor(Math.random() * GAMES.length); } while (idx === currentGameIndex && GAMES.length > 1);
+      loadGame(idx);
+    });
+    wireNavButton('next-game-btn', () => loadGame(currentGameIndex + 1));
+
+    const navBar = document.querySelector('.game-nav');
+    if (navBar) {
+      document.addEventListener('mousemove', (e) => {
+        if (window.innerWidth >= 992) {
+          const revealZone = Math.max(140, window.innerHeight * 0.18);
+          if (window.innerHeight - e.clientY < revealZone) {
+            navBar.classList.add('desktop-visible');
+          } else {
+            navBar.classList.remove('desktop-visible');
+          }
+        }
+      });
+
+      let collapseTimeout;
+      function resetCollapseTimeout() {
+        clearTimeout(collapseTimeout);
+        collapseTimeout = setTimeout(() => navBar.classList.remove('mobile-expanded'), 10000);
+      }
+      navBar.addEventListener('click', (e) => {
+        if (window.innerWidth < 992) {
+          if (!navBar.classList.contains('mobile-expanded')) {
+            e.preventDefault();
+            navBar.classList.add('mobile-expanded');
+            resetCollapseTimeout();
+          }
+        }
+      });
+      document.addEventListener('click', (e) => {
+        if (window.innerWidth < 992 && navBar.classList.contains('mobile-expanded') && !navBar.contains(e.target)) {
+          navBar.classList.remove('mobile-expanded');
+        }
+      });
+      navBar.querySelectorAll('.game-nav-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          if (window.innerWidth < 992) {
+            resetCollapseTimeout();
+            e.stopPropagation();
+          }
+        });
+      });
+      if (window.innerWidth < 992 && sessionStorage.getItem('navExpanded') === '1') {
+        sessionStorage.removeItem('navExpanded');
+        navBar.classList.add('mobile-expanded');
+        resetCollapseTimeout();
+      }
+    }
+  })();
 
   window.onload = () => {
     resetGame();
