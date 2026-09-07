@@ -238,6 +238,35 @@
     color: rgba(0, 245, 196, 0.55); text-align: center;
   }
 
+  /* ============ Mobile Keyboard Button Settings ============ */
+  .mobile-kb-btn {
+    display: none;
+    padding: 14px 28px;
+    border-radius: 12px;
+    background: rgba(0, 245, 196, 0.1);
+    border: 1px solid var(--color-correct);
+    color: var(--color-correct);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 4px 14px rgba(0,245,196,0.1);
+  }
+  .mobile-kb-btn:active {
+    transform: scale(0.96);
+    background: rgba(0, 245, 196, 0.25);
+  }
+  .mobile-input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    z-index: -10;
+    left: -9999px;
+  }
+
   /* ============ Bottom game nav (shared arcade chrome) ============ */
   .game-nav {
     position: fixed; left: 50%; bottom: 14px;
@@ -303,17 +332,22 @@
     .game-nav-btn:nth-child(3) { bottom: 168px; transition-delay: 0.08s; }
     .game-nav.mobile-expanded .game-nav-btn { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
 
-    /* ========================================================= */
-    /* NEW: Changed layout properties to push keyboard to bottom */
-    /* ========================================================= */
     .main-stage { 
-      padding-bottom: 85px; /* Increased bottom padding so keyboard clearly sits above the game nav footer */
+      padding-bottom: 85px; 
     }
     .stage-wrap {
-      margin: auto 0; /* Centers the word vertically in the remaining space while pushing the keyboard down */
+      margin: auto 0;
     }
     .keyboard-wrap {
-      margin-bottom: 0; /* Ensures the keyboard hugs the bottom padding */
+      margin-bottom: 0; 
+    }
+    
+    /* NEW: Hide desktop keyboard elements & show mobile button */
+    .keyboard, .hint, .external-kb-note { 
+      display: none !important; 
+    }
+    .mobile-kb-btn {
+      display: block;
     }
   }
 
@@ -367,6 +401,9 @@
     <div class="keyboard-wrap">
       <span class="hint">Type the <strong>mirrored</strong> letter — a↔z, b↔y, c↔x…</span>
 
+      <!-- Mobile Button -->
+      <button id="open-kb-btn" class="mobile-kb-btn" type="button">Tap to Open Keyboard</button>
+
       <div class="keyboard" id="keyboard">
         <div class="kb-row">
           <button class="kb-key" data-key="q" type="button">Q</button>
@@ -403,6 +440,9 @@
       </div>
 
       <span class="external-kb-note">External Keyboards Are Supported</span>
+
+      <!-- Hidden Input for Native Mobile Keyboards -->
+      <input type="text" id="mobile-input" class="mobile-input" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
     </div>
   </div>
 
@@ -728,7 +768,51 @@
     }
   }
 
+  // ===========================================================
+  // Event Listeners (Physical & Mobile Keyboards)
+  // ===========================================================
+
+  const mobileInput = document.getElementById('mobile-input');
+  const openKbBtn = document.getElementById('open-kb-btn');
+
+  // Trigger mobile keyboard when the button is clicked
+  if (openKbBtn && mobileInput) {
+    openKbBtn.addEventListener('click', () => {
+      mobileInput.focus();
+    });
+
+    mobileInput.addEventListener('focus', () => {
+      openKbBtn.innerText = 'Keyboard Active';
+      openKbBtn.style.background = 'rgba(0, 245, 196, 0.3)';
+    });
+
+    mobileInput.addEventListener('blur', () => {
+      openKbBtn.innerText = 'Tap to Open Keyboard';
+      openKbBtn.style.background = '';
+    });
+
+    // Listen to actual text input from the native keyboard
+    mobileInput.addEventListener('input', (e) => {
+      const val = mobileInput.value;
+      if (val.length > 0) {
+        // Take the last typed character and pass it to the game logic
+        const char = val[val.length - 1].toLowerCase();
+        processKey(char);
+        // Reset the hidden input field instantly so it doesn't accumulate text
+        mobileInput.value = '';
+      }
+    });
+  }
+
+  // Standard document keydown listener (for desktop or physical keyboards)
   document.addEventListener('keydown', (e) => {
+    // If the event comes from the native mobile hidden input field, 
+    // we ignore it here because the 'input' event (above) will process it. 
+    // This prevents double-typing bugs on mobile devices like Gboard.
+    if (e.target === mobileInput) {
+      return; 
+    }
+
     if (e.key === '8') {
       stopTimer();
       stage = 'thanks';
@@ -747,6 +831,7 @@
     processKey(e.key.toLowerCase());
   });
 
+  // On-screen desktop keyboard clicks
   keyboardEl.querySelectorAll('.kb-key').forEach(btn => {
     btn.addEventListener('click', () => processKey(btn.dataset.key));
   });
