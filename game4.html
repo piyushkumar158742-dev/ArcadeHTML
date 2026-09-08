@@ -129,8 +129,8 @@
   .main-stage {
     flex: 1; min-height: 0;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: clamp(14px, 3vh, 26px);
     padding: 0.5rem 3vw;
+    padding-bottom: var(--kb-dock-height, 210px);
     z-index: 2;
   }
 
@@ -196,44 +196,44 @@
   }
   .pop-anim { animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 
-  /* ============ On-screen keyboard ============ */
+  /* ============ On-screen keyboard — docked at the bottom, real-
+     keyboard-style row offsets, uniform key size (computed in JS
+     so 10-key top row, 9-key middle row and 7-key bottom row all
+     share one true key size instead of stretching per row) ============ */
+  .keyboard-dock {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    padding: 10px max(12px, env(safe-area-inset-left)) max(10px, env(safe-area-inset-bottom));
+    background: linear-gradient(to top, rgba(5,6,13,0.98) 55%, transparent);
+    z-index: 25;
+  }
+
   .hint {
     font-size: 0.66rem; letter-spacing: 1px; color: rgba(205, 211, 238, 0.35);
     text-align: center; max-width: 90vw;
   }
   .hint strong { color: rgba(205, 211, 238, 0.6); }
 
-  .keyboard-wrap {
-    display: flex; flex-direction: column; align-items: center; gap: 10px;
-    width: 100%; max-width: 640px;
-  }
-  @media (max-width: 480px) {
-    .keyboard-wrap { max-width: 100%; }
-    .kb-key { border-radius: 7px; }
-  }
   .keyboard {
-    display: flex; flex-direction: column; gap: clamp(5px, 1vh, 8px);
-    width: 100%; align-items: center;
+    display: flex; flex-direction: column; gap: 6px;
+    width: 100%; max-width: 640px; align-items: center;
   }
-  .kb-row { display: flex; gap: clamp(4px, 1.4vw, 8px); justify-content: center; width: 100%; }
+  .kb-row { display: flex; gap: 6px; justify-content: center; width: 100%; }
   .kb-key {
-    flex: 1 1 0;
-    aspect-ratio: 1 / 1;
-    min-width: 28px;
+    width: var(--kb-key, 34px);
+    height: var(--kb-key, 34px);
+    flex: 0 0 auto;
     border-radius: 8px;
     border: 1px solid var(--panel-border);
     background: rgba(255,255,255,0.03);
     color: var(--text-untyped);
     font-family: 'JetBrains Mono', monospace;
     font-weight: 700;
-    font-size: clamp(0.72rem, 3.6vw, 0.95rem);
+    font-size: calc(var(--kb-key, 34px) * 0.42);
     cursor: pointer;
     touch-action: manipulation;
     display: flex; align-items: center; justify-content: center;
     transition: background .1s ease, color .1s ease, border-color .1s ease, transform .08s ease;
-  }
-  @media (min-width: 640px) {
-    .kb-key { max-width: 46px; }
   }
   .kb-key:hover { background: rgba(0,245,196,0.08); border-color: rgba(0,245,196,0.35); color: #fff; }
   .kb-key:active, .kb-key.pressed {
@@ -247,7 +247,7 @@
 
   /* ============ Bottom game nav (shared arcade chrome) ============ */
   .game-nav {
-    position: fixed; left: 50%; bottom: max(14px, env(safe-area-inset-bottom));
+    position: fixed; left: 50%; bottom: calc(var(--kb-dock-height, 210px) + 10px);
     transform: translateX(-50%);
     display: flex; align-items: center; gap: 4px;
     background: rgba(8, 10, 20, 0.97);
@@ -279,6 +279,7 @@
   @media (max-width: 991px) {
     .game-nav {
       left: auto; right: 16px; transform: none;
+      bottom: calc(var(--kb-dock-height, 210px) + 16px);
       width: 50px; height: 50px; padding: 0;
       background: transparent; border: none; box-shadow: none;
       backdrop-filter: none; -webkit-backdrop-filter: none;
@@ -310,7 +311,6 @@
     .game-nav-btn:nth-child(3) { bottom: 168px; transition-delay: 0.08s; }
     .game-nav.mobile-expanded .game-nav-btn { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
 
-    .main-stage { padding-bottom: max(60px, calc(env(safe-area-inset-bottom) + 50px)); }
   }
 
   @media (max-height: 620px) {
@@ -359,47 +359,47 @@
         <div id="word-display" class="word-display"></div>
       </div>
     </div>
+  </div>
 
-    <div class="keyboard-wrap">
-      <span class="hint">Type the <strong>mirrored</strong> letter — a↔z, b↔y, c↔x…</span>
+  <div class="keyboard-dock" id="keyboard-dock">
+    <span class="hint">Type the <strong>mirrored</strong> letter — a↔z, b↔y, c↔x…</span>
 
-      <div class="keyboard" id="keyboard">
-        <div class="kb-row">
-          <button class="kb-key" data-key="q" type="button">Q</button>
-          <button class="kb-key" data-key="w" type="button">W</button>
-          <button class="kb-key" data-key="e" type="button">E</button>
-          <button class="kb-key" data-key="r" type="button">R</button>
-          <button class="kb-key" data-key="t" type="button">T</button>
-          <button class="kb-key" data-key="y" type="button">Y</button>
-          <button class="kb-key" data-key="u" type="button">U</button>
-          <button class="kb-key" data-key="i" type="button">I</button>
-          <button class="kb-key" data-key="o" type="button">O</button>
-          <button class="kb-key" data-key="p" type="button">P</button>
-        </div>
-        <div class="kb-row">
-          <button class="kb-key" data-key="a" type="button">A</button>
-          <button class="kb-key" data-key="s" type="button">S</button>
-          <button class="kb-key" data-key="d" type="button">D</button>
-          <button class="kb-key" data-key="f" type="button">F</button>
-          <button class="kb-key" data-key="g" type="button">G</button>
-          <button class="kb-key" data-key="h" type="button">H</button>
-          <button class="kb-key" data-key="j" type="button">J</button>
-          <button class="kb-key" data-key="k" type="button">K</button>
-          <button class="kb-key" data-key="l" type="button">L</button>
-        </div>
-        <div class="kb-row">
-          <button class="kb-key" data-key="z" type="button">Z</button>
-          <button class="kb-key" data-key="x" type="button">X</button>
-          <button class="kb-key" data-key="c" type="button">C</button>
-          <button class="kb-key" data-key="v" type="button">V</button>
-          <button class="kb-key" data-key="b" type="button">B</button>
-          <button class="kb-key" data-key="n" type="button">N</button>
-          <button class="kb-key" data-key="m" type="button">M</button>
-        </div>
+    <div class="keyboard" id="keyboard">
+      <div class="kb-row">
+        <button class="kb-key" data-key="q" type="button">Q</button>
+        <button class="kb-key" data-key="w" type="button">W</button>
+        <button class="kb-key" data-key="e" type="button">E</button>
+        <button class="kb-key" data-key="r" type="button">R</button>
+        <button class="kb-key" data-key="t" type="button">T</button>
+        <button class="kb-key" data-key="y" type="button">Y</button>
+        <button class="kb-key" data-key="u" type="button">U</button>
+        <button class="kb-key" data-key="i" type="button">I</button>
+        <button class="kb-key" data-key="o" type="button">O</button>
+        <button class="kb-key" data-key="p" type="button">P</button>
       </div>
-
-      <span class="external-kb-note">External Keyboards Are Supported</span>
+      <div class="kb-row">
+        <button class="kb-key" data-key="a" type="button">A</button>
+        <button class="kb-key" data-key="s" type="button">S</button>
+        <button class="kb-key" data-key="d" type="button">D</button>
+        <button class="kb-key" data-key="f" type="button">F</button>
+        <button class="kb-key" data-key="g" type="button">G</button>
+        <button class="kb-key" data-key="h" type="button">H</button>
+        <button class="kb-key" data-key="j" type="button">J</button>
+        <button class="kb-key" data-key="k" type="button">K</button>
+        <button class="kb-key" data-key="l" type="button">L</button>
+      </div>
+      <div class="kb-row">
+        <button class="kb-key" data-key="z" type="button">Z</button>
+        <button class="kb-key" data-key="x" type="button">X</button>
+        <button class="kb-key" data-key="c" type="button">C</button>
+        <button class="kb-key" data-key="v" type="button">V</button>
+        <button class="kb-key" data-key="b" type="button">B</button>
+        <button class="kb-key" data-key="n" type="button">N</button>
+        <button class="kb-key" data-key="m" type="button">M</button>
+      </div>
     </div>
+
+    <span class="external-kb-note">External Keyboards Are Supported</span>
   </div>
 
   <nav class="game-nav" id="game-nav" aria-label="Game navigation" tabindex="0">
@@ -472,7 +472,8 @@
     pebble boulder gravel sand dune oasis spring geyser cavern grotto reef lagoon fjord bay cove strait channel gorge ridge summit
     umbrella wallet ticket passport luggage suitcase calendar diary journal envelope stamp postcard package parcel receipt invoice coupon voucher badge medal trophy award certificate diploma license permit contract agreement treaty alliance coalition federation republic monarchy empire colony settlement village hamlet town metropolis suburb district neighborhood community population census survey referendum citizen
     yogurt pancake waffle syrup mustard ketchup vinegar oatmeal cereal granola pretzel popcorn marshmallow caramel toffee biscuit muffin bagel croissant baguette tortilla burrito taco sushi ramen curry kebab falafel hummus salsa
-    robot ninja pirate wizard zombie alien spaceship treasure dungeon creature explorer adventure villain sidekick mascot gamer gadget drone cyborg android hacker coder pixel arcade console joystick controller avatar emoji podcast streamer meme viral trending playlist soundtrack sequel franchise cosplay fandom spoiler cliffhanger blockbuster dinosaur samurai knight sword
+    robot ninja pirate wizard zombie alien spaceship treasure dungeon creature explorer adventure villain sidekick mascot gamer gadget drone cyborg android hacker coder pixel arcade console joystick controller avatar emoji podcast streamer meme viral trending playlist soundtrack sequel franchise cosplay fandom spoiler cliffhanger blockbuster dinosaur samurai knight sword blocks
+    zeus hera poseidon athena apollo artemis ares aphrodite hermes hephaestus demeter dionysus hades persephone kratos atreus loki thor odin freya hercules achilles perseus medusa cyclops icarus pandora midas narcissus orpheus hydra minotaur cerberus chimera valkyrie ragnarok asgard olympus atlantis excalibur
   `;
 
   const words = [...new Set(rawWords.split(/\s+/).filter(Boolean))];
@@ -507,6 +508,7 @@
   const typoElement = document.getElementById('typo-count');
   const timeElement = document.getElementById('time');
   const keyboardEl = document.getElementById('keyboard');
+  const keyboardDockEl = document.getElementById('keyboard-dock');
 
   function shuffle(arr) {
     const a = arr.slice();
@@ -631,10 +633,30 @@
     wordDisplayElement.style.fontSize = fontSize + 'px';
   }
 
+  // Row 1 has 10 keys — that sets the true key size. Rows 2 and 3
+  // use the same size and are simply centered, which naturally
+  // reproduces the half-key/1.5-key stagger of a real keyboard.
+  function fitKeyboardSize() {
+    const gap = 6;
+    const available = keyboardEl.clientWidth;
+    if (!available) return;
+    let keySize = (available - 9 * gap) / 10;
+    keySize = Math.max(28, Math.min(keySize, 48));
+    document.documentElement.style.setProperty('--kb-key', keySize + 'px');
+  }
+
+  function fitKeyboardDock() {
+    fitKeyboardSize();
+    requestAnimationFrame(() => {
+      document.documentElement.style.setProperty('--kb-dock-height', keyboardDockEl.offsetHeight + 'px');
+      fitWordSize();
+    });
+  }
+
   let resizeTimer;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(fitWordSize, 120);
+    resizeTimer = setTimeout(fitKeyboardDock, 120);
   });
 
   function startNextWord() {
@@ -865,6 +887,7 @@
   })();
 
   window.onload = () => {
+    fitKeyboardDock();
     resetGame();
     startNextWord();
   };
