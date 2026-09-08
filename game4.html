@@ -50,24 +50,6 @@
     background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 3px);
   }
 
-  /* Invisible "ghost" input — its only job is to give mobile browsers
-     something real and focusable so tapping the game summons the
-     device's own keyboard (Gboard / iOS keyboard). Never shown. */
-  #ghost-input {
-    position: fixed;
-    top: 0; left: 0;
-    width: 1px; height: 1px;
-    opacity: 0;
-    border: none; outline: none;
-    padding: 0; margin: 0;
-    background: transparent;
-    color: transparent;
-    caret-color: transparent;
-    font-size: 16px; /* stops iOS auto-zooming the page on focus */
-    pointer-events: none;
-    z-index: -1;
-  }
-
   /* ============ Top bar (title + settings) ============ */
   .topbar {
     flex: 0 0 auto;
@@ -222,29 +204,36 @@
   .hint strong { color: rgba(205, 211, 238, 0.6); }
 
   .keyboard-wrap {
-    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
     width: 100%; max-width: 640px;
+  }
+  @media (max-width: 480px) {
+    .keyboard-wrap { max-width: 100%; }
+    .kb-key { border-radius: 7px; }
   }
   .keyboard {
     display: flex; flex-direction: column; gap: clamp(5px, 1vh, 8px);
     width: 100%; align-items: center;
   }
-  .kb-row { display: flex; gap: clamp(4px, 1vw, 7px); justify-content: center; width: 100%; }
+  .kb-row { display: flex; gap: clamp(4px, 1.4vw, 8px); justify-content: center; width: 100%; }
   .kb-key {
     flex: 1 1 0;
-    max-width: 46px;
     aspect-ratio: 1 / 1;
-    min-width: 24px;
+    min-width: 28px;
     border-radius: 8px;
     border: 1px solid var(--panel-border);
     background: rgba(255,255,255,0.03);
     color: var(--text-untyped);
     font-family: 'JetBrains Mono', monospace;
     font-weight: 700;
-    font-size: clamp(0.68rem, 2.6vw, 0.95rem);
+    font-size: clamp(0.72rem, 3.6vw, 0.95rem);
     cursor: pointer;
+    touch-action: manipulation;
     display: flex; align-items: center; justify-content: center;
     transition: background .1s ease, color .1s ease, border-color .1s ease, transform .08s ease;
+  }
+  @media (min-width: 640px) {
+    .kb-key { max-width: 46px; }
   }
   .kb-key:hover { background: rgba(0,245,196,0.08); border-color: rgba(0,245,196,0.35); color: #fff; }
   .kb-key:active, .kb-key.pressed {
@@ -258,7 +247,7 @@
 
   /* ============ Bottom game nav (shared arcade chrome) ============ */
   .game-nav {
-    position: fixed; left: 50%; bottom: 14px;
+    position: fixed; left: 50%; bottom: max(14px, env(safe-area-inset-bottom));
     transform: translateX(-50%);
     display: flex; align-items: center; gap: 4px;
     background: rgba(8, 10, 20, 0.97);
@@ -321,7 +310,7 @@
     .game-nav-btn:nth-child(3) { bottom: 168px; transition-delay: 0.08s; }
     .game-nav.mobile-expanded .game-nav-btn { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
 
-    .main-stage { padding-bottom: 60px; }
+    .main-stage { padding-bottom: max(60px, calc(env(safe-area-inset-bottom) + 50px)); }
   }
 
   @media (max-height: 620px) {
@@ -330,8 +319,6 @@
 </style>
 </head>
 <body data-game-index="3">
-
-  <input id="ghost-input" type="text" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-hidden="true" tabindex="-1">
 
   <div class="scanlines"></div>
 
@@ -516,12 +503,10 @@
   const wordDisplayElement = document.getElementById('word-display');
   const wordCardEl = wordDisplayElement.parentElement;
   const stageWrapEl = document.getElementById('stage-wrap');
-  const mainStageEl = document.getElementById('main-stage');
   const scoreElement = document.getElementById('score');
   const typoElement = document.getElementById('typo-count');
   const timeElement = document.getElementById('time');
   const keyboardEl = document.getElementById('keyboard');
-  const ghostInput = document.getElementById('ghost-input');
 
   function shuffle(arr) {
     const a = arr.slice();
@@ -744,11 +729,6 @@
 
   // ---- Physical keyboard ----
   document.addEventListener('keydown', (e) => {
-    // If the ghost input currently has focus, the mobile/soft keyboard
-    // path (the 'input' listener below) is handling keystrokes instead —
-    // bail here so nothing gets processed twice.
-    if (document.activeElement === ghostInput) return;
-
     if (e.key === '8') {
       stopTimer();
       stage = 'thanks';
@@ -769,32 +749,7 @@
 
   // ---- On-screen keyboard (mouse or touch tap) ----
   keyboardEl.querySelectorAll('.kb-key').forEach(btn => {
-    // Stop the button tap from stealing focus off the ghost input, so
-    // a mobile soft keyboard that's already open stays open.
-    btn.addEventListener('pointerdown', (e) => e.preventDefault());
     btn.addEventListener('click', () => processKey(btn.dataset.key));
-  });
-
-  // ---- Real mobile keyboard (Gboard / iOS keyboard) via ghost input ----
-  // Tapping anywhere on the game focuses the invisible input, which is
-  // the only thing that actually makes a phone's OS keyboard appear —
-  // there's no way to summon it without a real focusable element.
-  function focusGhostInput() {
-    ghostInput.value = '';
-    ghostInput.focus({ preventScroll: true });
-  }
-  mainStageEl.addEventListener('click', focusGhostInput);
-  mainStageEl.addEventListener('touchend', focusGhostInput);
-
-  ghostInput.addEventListener('input', (e) => {
-    const typed = e.target.value;
-    for (const ch of typed) {
-      const lower = ch.toLowerCase();
-      if (/^[a-z]$/.test(lower)) {
-        processKey(lower);
-      }
-    }
-    ghostInput.value = '';
   });
 
   // ===========================================================
