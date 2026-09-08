@@ -278,6 +278,14 @@
   }
 
 @media (max-width: 991px) {
+    /* --- NEW: Make mobile keys rectangular and more prominent --- */
+    .kb-key {
+      height: calc(var(--kb-key, 34px) * 1.55); /* 1.55x taller than wide, like Gboard */
+      border-radius: 6px; /* Slightly sharper corners for rectangular shape */
+      font-size: calc(var(--kb-key, 34px) * 0.55); /* Larger, more readable text */
+      background: rgba(255, 255, 255, 0.06); /* Slightly more visible resting state */
+    }
+    
     .game-nav {
       left: auto; right: 16px; transform: none;
       bottom: 16px;
