@@ -50,6 +50,24 @@
     background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 3px);
   }
 
+  /* Invisible "ghost" input — its only job is to give mobile browsers
+     something real and focusable so tapping the game summons the
+     device's own keyboard (Gboard / iOS keyboard). Never shown. */
+  #ghost-input {
+    position: fixed;
+    top: 0; left: 0;
+    width: 1px; height: 1px;
+    opacity: 0;
+    border: none; outline: none;
+    padding: 0; margin: 0;
+    background: transparent;
+    color: transparent;
+    caret-color: transparent;
+    font-size: 16px; /* stops iOS auto-zooming the page on focus */
+    pointer-events: none;
+    z-index: -1;
+  }
+
   /* ============ Top bar (title + settings) ============ */
   .topbar {
     flex: 0 0 auto;
@@ -238,43 +256,6 @@
     color: rgba(0, 245, 196, 0.55); text-align: center;
   }
 
-  /* ============ Mobile Keyboard Bulletproof Overlay ============ */
-  .mobile-kb-wrapper {
-    display: none; /* Hidden on desktop */
-    position: relative;
-    width: 100%;
-    max-width: 300px;
-    margin-bottom: 20px;
-  }
-  
-  .mobile-kb-btn {
-    width: 100%;
-    padding: 16px 20px;
-    border-radius: 12px;
-    background: rgba(0, 245, 196, 0.1);
-    border: 1px solid var(--color-correct);
-    color: var(--color-correct);
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 700;
-    font-size: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    text-align: center;
-    transition: background 0.2s ease;
-    box-shadow: 0 4px 14px rgba(0,245,196,0.1);
-  }
-  
-  /* The hidden input covers the entire button perfectly. 
-     When the user taps the button, they actually tap the input! */
-  .mobile-input {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    width: 100%; height: 100%;
-    opacity: 0; /* Invisible but physically clickable */
-    z-index: 10;
-    cursor: pointer;
-  }
-
   /* ============ Bottom game nav (shared arcade chrome) ============ */
   .game-nav {
     position: fixed; left: 50%; bottom: 14px;
@@ -339,31 +320,8 @@
     .game-nav-btn:nth-child(2) { bottom: 112px; transition-delay: 0.04s; }
     .game-nav-btn:nth-child(3) { bottom: 168px; transition-delay: 0.08s; }
     .game-nav.mobile-expanded .game-nav-btn { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
-  }
 
-  /* ========================================================================= 
-     Mobile & Tablet Overrides 
-     Ensures the native keyboard button ONLY shows on actual touch devices 
-     (Laptops sizing down their window will retain the arcade keyboard!)
-     ========================================================================= */
-  @media (hover: none) and (pointer: coarse) {
-    .keyboard, 
-    .hint, 
-    .external-kb-note { 
-      display: none !important; 
-    }
-    .mobile-kb-wrapper {
-      display: block !important;
-    }
-    .main-stage { 
-      padding-bottom: 85px !important; 
-    }
-    .stage-wrap {
-      margin: auto 0 !important;
-    }
-    .keyboard-wrap {
-      margin-bottom: 0 !important; 
-    }
+    .main-stage { padding-bottom: 60px; }
   }
 
   @media (max-height: 620px) {
@@ -372,6 +330,8 @@
 </style>
 </head>
 <body data-game-index="3">
+
+  <input id="ghost-input" type="text" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-hidden="true" tabindex="-1">
 
   <div class="scanlines"></div>
 
@@ -406,7 +366,7 @@
     </div>
   </div>
 
-  <div class="main-stage">
+  <div class="main-stage" id="main-stage">
     <div class="stage-wrap" id="stage-wrap">
       <div class="word-card">
         <div id="word-display" class="word-display"></div>
@@ -415,13 +375,6 @@
 
     <div class="keyboard-wrap">
       <span class="hint">Type the <strong>mirrored</strong> letter — a↔z, b↔y, c↔x…</span>
-
-      <!-- Bulletproof Mobile Wrapper (Hidden on desktop) -->
-      <div class="mobile-kb-wrapper">
-        <div id="open-kb-btn" class="mobile-kb-btn">Tap to Open Keyboard</div>
-        <!-- Input goes ON TOP of the visual button -->
-        <input type="text" id="mobile-input" class="mobile-input" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
-      </div>
 
       <div class="keyboard" id="keyboard">
         <div class="kb-row">
@@ -563,10 +516,12 @@
   const wordDisplayElement = document.getElementById('word-display');
   const wordCardEl = wordDisplayElement.parentElement;
   const stageWrapEl = document.getElementById('stage-wrap');
+  const mainStageEl = document.getElementById('main-stage');
   const scoreElement = document.getElementById('score');
   const typoElement = document.getElementById('typo-count');
   const timeElement = document.getElementById('time');
   const keyboardEl = document.getElementById('keyboard');
+  const ghostInput = document.getElementById('ghost-input');
 
   function shuffle(arr) {
     const a = arr.slice();
@@ -754,6 +709,9 @@
     setTimeout(() => btn.classList.remove('pressed'), 120);
   }
 
+  // Shared by physical keydown, the invisible mobile-keyboard input,
+  // AND on-screen keyboard taps — every input method drives the exact
+  // same game logic through this one function.
   function processKey(pressedKey) {
     if (isTransitioning) return;
     if (!/^[a-z]$/.test(pressedKey)) return;
@@ -784,39 +742,12 @@
     }
   }
 
-  // ===========================================================
-  // Event Listeners (Physical & Native Mobile Keyboards)
-  // ===========================================================
-
-  const mobileInput = document.getElementById('mobile-input');
-  const openKbBtn = document.getElementById('open-kb-btn');
-
-  if (openKbBtn && mobileInput) {
-    // Change style when the input is actually focused
-    mobileInput.addEventListener('focus', () => {
-      openKbBtn.innerText = 'Keyboard Active';
-      openKbBtn.style.background = 'rgba(0, 245, 196, 0.3)';
-    });
-
-    mobileInput.addEventListener('blur', () => {
-      openKbBtn.innerText = 'Tap to Open Keyboard';
-      openKbBtn.style.background = 'rgba(0, 245, 196, 0.1)';
-    });
-
-    // Listen to what the user types into the invisible field.
-    mobileInput.addEventListener('input', (e) => {
-      const val = mobileInput.value;
-      if (val.length > 0) {
-        const char = val[val.length - 1].toLowerCase();
-        processKey(char);
-        mobileInput.value = ''; // Reset immediately
-      }
-    });
-  }
-
-  // Physical Keyboard Listener
+  // ---- Physical keyboard ----
   document.addEventListener('keydown', (e) => {
-    if (e.target === mobileInput) return; // Prevent double typing from input
+    // If the ghost input currently has focus, the mobile/soft keyboard
+    // path (the 'input' listener below) is handling keystrokes instead —
+    // bail here so nothing gets processed twice.
+    if (document.activeElement === ghostInput) return;
 
     if (e.key === '8') {
       stopTimer();
@@ -836,11 +767,39 @@
     processKey(e.key.toLowerCase());
   });
 
-  // On-screen desktop keyboard clicks
+  // ---- On-screen keyboard (mouse or touch tap) ----
   keyboardEl.querySelectorAll('.kb-key').forEach(btn => {
+    // Stop the button tap from stealing focus off the ghost input, so
+    // a mobile soft keyboard that's already open stays open.
+    btn.addEventListener('pointerdown', (e) => e.preventDefault());
     btn.addEventListener('click', () => processKey(btn.dataset.key));
   });
 
+  // ---- Real mobile keyboard (Gboard / iOS keyboard) via ghost input ----
+  // Tapping anywhere on the game focuses the invisible input, which is
+  // the only thing that actually makes a phone's OS keyboard appear —
+  // there's no way to summon it without a real focusable element.
+  function focusGhostInput() {
+    ghostInput.value = '';
+    ghostInput.focus({ preventScroll: true });
+  }
+  mainStageEl.addEventListener('click', focusGhostInput);
+  mainStageEl.addEventListener('touchend', focusGhostInput);
+
+  ghostInput.addEventListener('input', (e) => {
+    const typed = e.target.value;
+    for (const ch of typed) {
+      const lower = ch.toLowerCase();
+      if (/^[a-z]$/.test(lower)) {
+        processKey(lower);
+      }
+    }
+    ghostInput.value = '';
+  });
+
+  // ===========================================================
+  // Shared arcade chrome — settings panel + bottom game nav
+  // ===========================================================
   (function () {
     const settingsBtn = document.getElementById('settings-btn');
     const settingsPanel = document.getElementById('settings-panel');
