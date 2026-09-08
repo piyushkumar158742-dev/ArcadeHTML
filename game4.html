@@ -200,10 +200,11 @@
      keyboard-style row offsets, uniform key size (computed in JS
      so 10-key top row, 9-key middle row and 7-key bottom row all
      share one true key size instead of stretching per row) ============ */
-  .keyboard-dock {
+.keyboard-dock {
     position: fixed; left: 0; right: 0; bottom: 0;
     display: flex; flex-direction: column; align-items: center; gap: 8px;
-    padding: 10px max(12px, env(safe-area-inset-left)) max(10px, env(safe-area-inset-bottom));
+    /* Added 64px to the bottom padding to push the keyboard up and leave room for the navbar */
+    padding: 10px max(12px, env(safe-area-inset-left)) calc(max(10px, env(safe-area-inset-bottom)) + 64px);
     background: linear-gradient(to top, rgba(5,6,13,0.98) 55%, transparent);
     z-index: 25;
   }
@@ -245,9 +246,9 @@
     color: rgba(0, 245, 196, 0.55); text-align: center;
   }
 
-  /* ============ Bottom game nav (shared arcade chrome) ============ */
+/* ============ Bottom game nav (shared arcade chrome) ============ */
   .game-nav {
-    position: fixed; left: 50%; bottom: calc(var(--kb-dock-height, 210px) + 10px);
+    position: fixed; left: 50%; bottom: 16px;
     transform: translateX(-50%);
     display: flex; align-items: center; gap: 4px;
     background: rgba(8, 10, 20, 0.97);
@@ -276,10 +277,10 @@
     .game-nav.desktop-visible { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
   }
 
-  @media (max-width: 991px) {
+@media (max-width: 991px) {
     .game-nav {
       left: auto; right: 16px; transform: none;
-      bottom: calc(var(--kb-dock-height, 210px) + 16px);
+      bottom: 16px;
       width: 50px; height: 50px; padding: 0;
       background: transparent; border: none; box-shadow: none;
       backdrop-filter: none; -webkit-backdrop-filter: none;
