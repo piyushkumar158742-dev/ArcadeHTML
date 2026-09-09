@@ -3,27 +3,227 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#05060f">
-<title>Game 5 — Cosmic Arcade</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;0,700;1,500&family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="shared.css">
+<meta name="theme-color" content="#000000">
+<title>DVD Bounce — Cosmic Arcade</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overscroll-behavior: none; background: #000; }
+
+  body {
+    color: #eaeaea;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    position: relative;
+    user-select: none;
+  }
+
+  /* ============ Top bar ============ */
+  .topbar {
+    flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 1.4rem;
+    z-index: 20; position: relative;
+  }
+  .game-title {
+    font-size: clamp(0.85rem, 2.4vw, 1.05rem);
+    font-weight: 800; letter-spacing: 3px; text-transform: uppercase;
+    color: #ffffff;
+  }
+  .settings-btn {
+    width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.15); color: #cfcfcf;
+    cursor: pointer; transition: background .2s ease, color .2s ease, border-color .2s ease;
+  }
+  .settings-btn:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.35); }
+  .settings-btn svg { width: 16px; height: 16px; }
+
+  .settings-panel {
+    position: fixed; top: 4.2rem; right: 1.4rem;
+    width: min(240px, 80vw);
+    background: rgba(10, 10, 10, 0.97);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 14px;
+    padding: 14px; z-index: 40;
+    opacity: 0; pointer-events: none; transform: translateY(-8px);
+    transition: opacity .2s ease, transform .2s ease;
+  }
+  .settings-panel.open { opacity: 1; pointer-events: auto; transform: translateY(0); }
+  .settings-panel h2 {
+    font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase;
+    color: rgba(255,255,255,0.5); margin-bottom: 10px; font-weight: 700;
+  }
+  .settings-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; }
+  .settings-row span { font-size: 0.82rem; color: #eaeaea; }
+  .settings-toggle {
+    width: 36px; height: 20px; border-radius: 20px;
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+    position: relative; cursor: pointer; transition: background .2s ease; flex-shrink: 0;
+  }
+  .settings-toggle::after {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: #cfcfcf; transition: transform .2s ease, background .2s ease;
+  }
+  .settings-toggle.on { background: rgba(255,255,255,0.3); border-color: #fff; }
+  .settings-toggle.on::after { transform: translateX(16px); background: #fff; }
+
+  /* ============ HUD ============ */
+  .hud {
+    flex: 0 0 auto;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 0 1.4rem 0.6rem;
+    z-index: 2;
+  }
+  .hud-block { display: flex; flex-direction: column; gap: 2px; }
+  .hud-label {
+    font-size: 0.62rem; letter-spacing: 3px; text-transform: uppercase;
+    color: rgba(255,255,255,0.4); font-weight: 500;
+  }
+  .hud-value {
+    font-size: clamp(1.1rem, 3.4vw, 1.4rem); font-weight: 700; color: #ffffff;
+    font-variant-numeric: tabular-nums;
+  }
+  #corner-count { color: #ffd23f; }
+
+  /* ============ Stage ============ */
+  .dvd-stage {
+    flex: 1; min-height: 0;
+    position: relative;
+    overflow: hidden;
+    background: #000;
+  }
+
+  .dvd-logo {
+    position: absolute; top: 0; left: 0;
+    width: clamp(88px, 16vw, 150px);
+    color: #00f5c4;
+    filter: drop-shadow(0 0 10px currentColor);
+    will-change: transform;
+    pointer-events: none;
+  }
+  .dvd-logo svg { display: block; width: 100%; height: auto; }
+
+  .corner-flash {
+    position: absolute; inset: 0; pointer-events: none;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 5;
+  }
+  .corner-flash-text {
+    font-family: 'Arial Black', sans-serif; font-style: italic; font-weight: 900;
+    font-size: clamp(1.8rem, 8vw, 4.5rem); color: #fff;
+    text-shadow: 0 0 40px #ffd23f;
+    opacity: 0; transform: scale(0.5);
+  }
+  .corner-flash.flash-anim .corner-flash-text {
+    animation: cornerPop 0.9s cubic-bezier(0.2,0.8,0.2,1);
+  }
+  @keyframes cornerPop {
+    0% { opacity: 0; transform: scale(0.4); }
+    25% { opacity: 1; transform: scale(1.15); }
+    45% { transform: scale(1); }
+    100% { opacity: 0; transform: scale(1.3); }
+  }
+  .corner-flash.flash-anim {
+    animation: cornerBgFlash 0.5s ease-out;
+  }
+  @keyframes cornerBgFlash {
+    0% { background: rgba(255,255,255,0.3); }
+    100% { background: transparent; }
+  }
+
+  @keyframes bodyShake {
+    10%, 90% { transform: translateX(-2px); }
+    20%, 80% { transform: translateX(4px); }
+    30%, 50%, 70% { transform: translateX(-6px); }
+    40%, 60% { transform: translateX(6px); }
+  }
+  body.shake { animation: bodyShake 0.35s; }
+
+  /* ============ Bottom game nav ============ */
+  .game-nav {
+    position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    display: flex; align-items: center; gap: 4px;
+    background: rgba(10, 10, 10, 0.97);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.15); padding: 6px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6); z-index: 30;
+    border-radius: 50px;
+  }
+  .game-nav-btn {
+    background: transparent; border: none; color: #cfcfcf;
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: background .2s ease, color .2s ease;
+  }
+  .game-nav-btn svg { width: 16px; height: 16px; }
+  .game-nav-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .game-nav-btn.random-btn { color: #ffd23f; }
+  .game-nav-btn.random-btn:hover { background: rgba(255,210,63,0.14); }
+
+  @media (min-width: 992px) {
+    .game-nav {
+      opacity: 0; transform: translate(-50%, 150%);
+      transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+      pointer-events: none;
+    }
+    .game-nav.desktop-visible { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  }
+
+  @media (max-width: 991px) {
+    .game-nav {
+      left: auto; right: 16px; transform: none;
+      width: 50px; height: 50px; padding: 0;
+      background: transparent; border: none; box-shadow: none;
+      backdrop-filter: none; -webkit-backdrop-filter: none;
+      cursor: pointer;
+    }
+    .game-nav::before {
+      content: ''; position: absolute; inset: 0; border-radius: 14px;
+      background: rgba(10, 10, 10, 0.97);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.15);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23ffd23f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='3' y='3' width='18' height='18' rx='4'%3E%3C/rect%3E%3Ccircle cx='8' cy='8' r='1.3' fill='%23ffd23f' stroke='none'%3E%3C/circle%3E%3Ccircle cx='16' cy='8' r='1.3' fill='%23ffd23f' stroke='none'%3E%3C/circle%3E%3Ccircle cx='12' cy='12' r='1.3' fill='%23ffd23f' stroke='none'%3E%3C/circle%3E%3Ccircle cx='8' cy='16' r='1.3' fill='%23ffd23f' stroke='none'%3E%3C/circle%3E%3Ccircle cx='16' cy='16' r='1.3' fill='%23ffd23f' stroke='none'%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: center; background-size: 20px 20px;
+      transition: opacity 0.25s ease;
+    }
+    .game-nav.mobile-expanded::before { opacity: 0; }
+    .game-nav-btn {
+      position: absolute; right: 0; bottom: 56px;
+      width: 46px; height: 46px; border-radius: 14px;
+      background: rgba(10, 10, 10, 0.97);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.15);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+      opacity: 0; transform: translateY(14px) scale(0.85); pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.32s cubic-bezier(0.2,0.8,0.2,1);
+    }
+    .game-nav-btn:nth-child(1) { bottom: 56px; transition-delay: 0s; }
+    .game-nav-btn:nth-child(2) { bottom: 112px; transition-delay: 0.04s; }
+    .game-nav-btn:nth-child(3) { bottom: 168px; transition-delay: 0.08s; }
+    .game-nav.mobile-expanded .game-nav-btn { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+  }
+</style>
 </head>
 <body data-game-index="4">
 
-  <div class="bg-void"></div>
-  <div class="bg-grid"></div>
-  <div class="bg-orbit-wrap"><svg id="orbit-svg" viewBox="0 0 700 700"></svg></div>
-  <canvas id="starfield" aria-hidden="true"></canvas>
-
-  <button id="settings-btn" class="settings-btn" aria-label="Settings" aria-haspopup="true" aria-expanded="false" type="button">
-    <svg viewBox="0 0 24 24">
-      <circle cx="12" cy="5" r="1.6" fill="currentColor"></circle>
-      <circle cx="12" cy="12" r="1.6" fill="currentColor"></circle>
-      <circle cx="12" cy="19" r="1.6" fill="currentColor"></circle>
-    </svg>
-  </button>
+  <div class="topbar">
+    <span class="game-title">DVD Bounce</span>
+    <button id="settings-btn" class="settings-btn" aria-label="Settings" aria-haspopup="true" aria-expanded="false" type="button">
+      <svg viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="5" r="1.6" fill="currentColor"></circle>
+        <circle cx="12" cy="12" r="1.6" fill="currentColor"></circle>
+        <circle cx="12" cy="19" r="1.6" fill="currentColor"></circle>
+      </svg>
+    </button>
+  </div>
 
   <div class="settings-panel" id="settings-panel" role="dialog" aria-label="Settings">
     <h2>Settings</h2>
@@ -33,11 +233,26 @@
     </div>
   </div>
 
-  <div class="app-container">
-    <div class="stage">
-      <span class="stage-number">Slot 5 of 7</span>
-      <h2>Game 5</h2>
-      <p>Not built yet — this is a reserved placeholder in the Cosmic Arcade ecosystem.</p>
+  <div class="hud">
+    <div class="hud-block">
+      <span class="hud-label">Score</span>
+      <span class="hud-value" id="score">0</span>
+    </div>
+    <div class="hud-block" style="align-items:flex-end;">
+      <span class="hud-label">Corners</span>
+      <span class="hud-value" id="corner-count">0</span>
+    </div>
+  </div>
+
+  <div class="dvd-stage" id="dvd-stage">
+    <div class="dvd-logo" id="dvd-logo">
+      <svg viewBox="0 0 200 90" xmlns="http://www.w3.org/2000/svg">
+        <rect x="4" y="4" width="192" height="82" rx="41" fill="none" stroke="currentColor" stroke-width="6"></rect>
+        <text x="100" y="58" text-anchor="middle" font-family="'Arial Black', sans-serif" font-style="italic" font-weight="900" font-size="42" fill="currentColor">DVD</text>
+      </svg>
+    </div>
+    <div class="corner-flash" id="corner-flash">
+      <span class="corner-flash-text">CORNER! +100</span>
     </div>
   </div>
 
@@ -64,24 +279,234 @@
     </button>
   </nav>
 
-<script src="shared.js"></script>
+<script>
+  // ===========================================================
+  // DVD bounce physics
+  // ===========================================================
+  const stageEl = document.getElementById('dvd-stage');
+  const logoEl = document.getElementById('dvd-logo');
+  const scoreEl = document.getElementById('score');
+  const cornerEl = document.getElementById('corner-count');
+  const cornerFlashEl = document.getElementById('corner-flash');
+
+  const COLORS = ['#00f5c4', '#ff3d6e', '#ffd23f', '#7c6cf0', '#00c2ff', '#ff8a3d', '#39ff88', '#ff5ec4', '#ffffff'];
+  let colorIdx = 0;
+
+  let x = 0, y = 0, vx = 0, vy = 0;
+  let logoW = 0, logoH = 0, stageW = 0, stageH = 0;
+  let score = 0, corners = 0;
+  let lastTime = 0;
+
+  function pickNewColor() {
+    let idx;
+    do { idx = Math.floor(Math.random() * COLORS.length); } while (idx === colorIdx && COLORS.length > 1);
+    colorIdx = idx;
+    logoEl.style.color = COLORS[colorIdx];
+  }
+
+  function measure() {
+    stageW = stageEl.clientWidth;
+    stageH = stageEl.clientHeight;
+    logoW = logoEl.offsetWidth;
+    logoH = logoEl.offsetHeight;
+  }
+
+  function render() {
+    logoEl.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+  }
+
+  function triggerCornerEffects() {
+    cornerFlashEl.classList.remove('flash-anim');
+    void cornerFlashEl.offsetWidth;
+    cornerFlashEl.classList.add('flash-anim');
+
+    document.body.classList.remove('shake');
+    void document.body.offsetWidth;
+    document.body.classList.add('shake');
+  }
+
+  function resetPosition() {
+    measure();
+    x = Math.random() * Math.max(stageW - logoW, 0);
+    y = Math.random() * Math.max(stageH - logoH, 0);
+
+    const angle = (20 + Math.random() * 50) * (Math.PI / 180); // 20°-70°, avoids near-flat/vertical paths
+    const speed = 230; // px/sec
+    vx = (Math.random() < 0.5 ? -1 : 1) * speed * Math.cos(angle);
+    vy = (Math.random() < 0.5 ? -1 : 1) * speed * Math.sin(angle);
+
+    pickNewColor();
+    render();
+  }
+
+  function tick(now) {
+    if (!lastTime) lastTime = now;
+    let dt = (now - lastTime) / 1000;
+    dt = Math.min(dt, 0.05); // clamp so a backgrounded tab doesn't cause a huge jump on return
+    lastTime = now;
+
+    let nx = x + vx * dt;
+    let ny = y + vy * dt;
+    let hitX = false, hitY = false;
+
+    if (nx <= 0) { nx = 0; vx = -vx; hitX = true; }
+    else if (nx + logoW >= stageW) { nx = stageW - logoW; vx = -vx; hitX = true; }
+
+    if (ny <= 0) { ny = 0; vy = -vy; hitY = true; }
+    else if (ny + logoH >= stageH) { ny = stageH - logoH; vy = -vy; hitY = true; }
+
+    x = nx; y = ny;
+
+    if (hitX && hitY) {
+      corners++;
+      score += 100;
+      cornerEl.innerText = corners;
+      scoreEl.innerText = score;
+      pickNewColor();
+      triggerCornerEffects();
+    } else if (hitX || hitY) {
+      score += 1;
+      scoreEl.innerText = score;
+      pickNewColor();
+    }
+
+    render();
+    requestAnimationFrame(tick);
+  }
+
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      const prevW = stageW, prevH = stageH;
+      measure();
+      if (prevW && prevH) {
+        x = Math.min(x, Math.max(stageW - logoW, 0));
+        y = Math.min(y, Math.max(stageH - logoH, 0));
+      }
+      render();
+    }, 120);
+  });
+
+  // ===========================================================
+  // Shared arcade chrome — settings panel + bottom game nav
+  // ===========================================================
+  (function () {
+    const settingsBtn = document.getElementById('settings-btn');
+    const settingsPanel = document.getElementById('settings-panel');
+    const soundToggle = document.getElementById('sound-toggle');
+    let soundOn = true;
+
+    function setToggleState(btn, on) {
+      if (!btn) return;
+      btn.classList.toggle('on', on);
+      btn.setAttribute('aria-checked', on ? 'true' : 'false');
+    }
+    setToggleState(soundToggle, soundOn);
+
+    if (settingsBtn && settingsPanel) {
+      settingsBtn.addEventListener('click', () => {
+        const open = settingsPanel.classList.toggle('open');
+        settingsBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      document.addEventListener('click', (e) => {
+        if (settingsPanel.classList.contains('open') &&
+            !settingsPanel.contains(e.target) &&
+            !settingsBtn.contains(e.target)) {
+          settingsPanel.classList.remove('open');
+          settingsBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+    if (soundToggle) {
+      soundToggle.addEventListener('click', () => {
+        soundOn = !soundOn;
+        setToggleState(soundToggle, soundOn);
+      });
+    }
+
+    const GAMES = [
+      { name: "Cosmic Calendar", url: "index.html" },
+      { name: "Block Market", url: "game2.html" },
+      { name: "Stop at 5.000", url: "game3.html" },
+      { name: "Reverse Typer", url: "game4.html" },
+      { name: "DVD Bounce", url: "game5.html" },
+      { name: "Game 6", url: "game6.html" },
+      { name: "Game 7", url: "game7.html" }
+    ];
+    const currentGameIndex = parseInt(document.body.getAttribute('data-game-index'), 10) || 0;
+
+    function loadGame(idx) {
+      idx = ((idx % GAMES.length) + GAMES.length) % GAMES.length;
+      if (idx === currentGameIndex) return;
+      if (window.innerWidth < 992) { sessionStorage.setItem('navExpanded', '1'); }
+      window.location.href = GAMES[idx].url;
+    }
+
+    function wireNavButton(id, handler) {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('click', handler);
+    }
+    wireNavButton('back-game-btn', () => loadGame(currentGameIndex - 1));
+    wireNavButton('random-game-btn', () => {
+      let idx;
+      do { idx = Math.floor(Math.random() * GAMES.length); } while (idx === currentGameIndex && GAMES.length > 1);
+      loadGame(idx);
+    });
+    wireNavButton('next-game-btn', () => loadGame(currentGameIndex + 1));
+
+    const navBar = document.querySelector('.game-nav');
+    if (navBar) {
+      document.addEventListener('mousemove', (e) => {
+        if (window.innerWidth >= 992) {
+          const revealZone = Math.max(140, window.innerHeight * 0.18);
+          if (window.innerHeight - e.clientY < revealZone) {
+            navBar.classList.add('desktop-visible');
+          } else {
+            navBar.classList.remove('desktop-visible');
+          }
+        }
+      });
+
+      let collapseTimeout;
+      function resetCollapseTimeout() {
+        clearTimeout(collapseTimeout);
+        collapseTimeout = setTimeout(() => navBar.classList.remove('mobile-expanded'), 10000);
+      }
+      navBar.addEventListener('click', (e) => {
+        if (window.innerWidth < 992) {
+          if (!navBar.classList.contains('mobile-expanded')) {
+            e.preventDefault();
+            navBar.classList.add('mobile-expanded');
+            resetCollapseTimeout();
+          }
+        }
+      });
+      document.addEventListener('click', (e) => {
+        if (window.innerWidth < 992 && navBar.classList.contains('mobile-expanded') && !navBar.contains(e.target)) {
+          navBar.classList.remove('mobile-expanded');
+        }
+      });
+      navBar.querySelectorAll('.game-nav-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          if (window.innerWidth < 992) {
+            resetCollapseTimeout();
+            e.stopPropagation();
+          }
+        });
+      });
+      if (window.innerWidth < 992 && sessionStorage.getItem('navExpanded') === '1') {
+        sessionStorage.removeItem('navExpanded');
+        navBar.classList.add('mobile-expanded');
+        resetCollapseTimeout();
+      }
+    }
+  })();
+
+  window.onload = () => {
+    resetPosition();
+    requestAnimationFrame(tick);
+  };
+</script>
 </body>
 </html>
-<!--
-  GAME 5 — RESERVED SLOT (not yet built)
-  ==========================================
-  This is slot 5 of 7 in the Cosmic Arcade ecosystem (see index.html,
-  the Cosmic Calendar, for the first real game and the shared-chrome
-  explanation). No concept has been chosen for this slot yet — its
-  currently just a centered "Game 5" label inside the shared .stage
-  layout so the back/random/next game nav has something to land on.
-
-  For whoever (human or AI) builds this next: replace the .stage block
-  in <body> with the real game markup, add any game-specific CSS in a
-  <style> block in <head> (after the shared.css link, same pattern as
-  index.html), and add game-specific JS in a <script> block after
-  shared.js. Leave shared.css/shared.js untouched and keep the
-  data-game-index attribute on <body> as-is (it's what tells the
-  shared nav which slot this page is) — then update THIS comment to
-  describe the finished game's idea instead of "not yet built".
--->
