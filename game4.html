@@ -19,7 +19,8 @@
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body { height: 100%; }
+  html, body { height: 100%; overscroll-behavior: none; }
+  html { background: var(--bg-1); }
 
   body {
     background:
@@ -33,6 +34,7 @@
     height: 100vh;
     height: 100dvh;
     overflow: hidden;
+    overscroll-behavior: none;
     position: relative;
     user-select: none;
   }
@@ -216,10 +218,10 @@
   .hint strong { color: rgba(205, 211, 238, 0.6); }
 
   .keyboard {
-    display: flex; flex-direction: column; gap: 6px;
+    display: flex; flex-direction: column; gap: var(--kb-gap, 6px);
     width: 100%; max-width: 640px; align-items: center;
   }
-  .kb-row { display: flex; gap: 6px; justify-content: center; width: 100%; }
+  .kb-row { display: flex; gap: var(--kb-gap, 6px); justify-content: center; width: 100%; }
   .kb-key {
     width: var(--kb-key, 34px);
     height: var(--kb-key, 34px);
@@ -278,14 +280,19 @@
   }
 
 @media (max-width: 991px) {
-    /* --- NEW: Make mobile keys rectangular and more prominent --- */
+    /* Make mobile keys rectangular and more prominent, like Gboard */
     .kb-key {
-      height: calc(var(--kb-key, 34px) * 1.55); /* 1.55x taller than wide, like Gboard */
-      border-radius: 6px; /* Slightly sharper corners for rectangular shape */
-      font-size: calc(var(--kb-key, 34px) * 0.55); /* Larger, more readable text */
-      background: rgba(255, 255, 255, 0.06); /* Slightly more visible resting state */
+      height: calc(var(--kb-key, 34px) * 1.55);
+      border-radius: 6px;
+      font-size: calc(var(--kb-key, 34px) * 0.55);
+      background: rgba(255, 255, 255, 0.06);
     }
-    
+
+    .keyboard-dock {
+      padding-left: max(6px, env(safe-area-inset-left));
+      padding-right: max(6px, env(safe-area-inset-right));
+    }
+
     .game-nav {
       left: auto; right: 16px; transform: none;
       bottom: 16px;
@@ -649,12 +656,19 @@
   // Row 1 has 10 keys — that sets the true key size. Rows 2 and 3
   // use the same size and are simply centered, which naturally
   // reproduces the half-key/1.5-key stagger of a real keyboard.
+  // Mobile gets a tighter gap and a much higher minimum/maximum so
+  // keys are genuinely easy to tap, not just tall.
   function fitKeyboardSize() {
-    const gap = 6;
+    const isMobile = window.innerWidth < 640;
+    const gap = isMobile ? 4 : 6;
+    document.documentElement.style.setProperty('--kb-gap', gap + 'px');
+
     const available = keyboardEl.clientWidth;
     if (!available) return;
     let keySize = (available - 9 * gap) / 10;
-    keySize = Math.max(28, Math.min(keySize, 48));
+    const minSize = isMobile ? 36 : 28;
+    const maxSize = isMobile ? 58 : 48;
+    keySize = Math.max(minSize, Math.min(keySize, maxSize));
     document.documentElement.style.setProperty('--kb-key', keySize + 'px');
   }
 
