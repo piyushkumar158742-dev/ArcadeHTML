@@ -19,8 +19,7 @@
     user-select: none;
   }
 
-  /* ============ Full-bleed stage — the ball's walls are the actual
-     screen edges now, with the HUD/nav floating on top of it ============ */
+  /* ============ Full-bleed stage ============ */
   .dvd-stage {
     position: fixed; inset: 0;
     overflow: hidden;
@@ -74,7 +73,7 @@
   }
   body.shake { animation: bodyShake 0.35s; }
 
-  /* ============ Top overlay (title + score + settings) ============ */
+  /* ============ Top overlay ============ */
   .top-overlay {
     position: fixed; top: 0; left: 0; right: 0;
     z-index: 20;
@@ -151,7 +150,7 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* ============ Upgrade shop (slide-out drawer) ============ */
+  /* ============ Upgrade shop ============ */
   .upgrade-tab {
     position: fixed; top: 50%; right: 0; transform: translateY(-50%);
     width: 40px; height: 66px; border-radius: 14px 0 0 14px;
@@ -321,11 +320,10 @@
   <div class="dvd-stage" id="dvd-stage">
     <div class="dvd-logo" id="dvd-logo">
       <svg viewBox="0 0 200 112" xmlns="http://www.w3.org/2000/svg">
-        <rect x="4" y="4" width="192" height="104" rx="52" fill="none" stroke="currentColor" stroke-width="6"></rect>
-        <text x="100" y="55" text-anchor="middle" font-family="'Arial Black', sans-serif" font-style="italic" font-weight="900" font-size="38" fill="currentColor">DVD</text>
-        <g transform="translate(100,82)">
-          <circle r="15" fill="currentColor"></circle>
-          <circle r="5.5" fill="#000"></circle>
+        <text x="100" y="65" text-anchor="middle" font-family="Impact, 'Arial Black', sans-serif" font-weight="900" font-size="56" fill="currentColor" letter-spacing="1">DVD</text>
+        <g transform="translate(100,88)">
+          <ellipse rx="75" ry="16" fill="currentColor"></ellipse>
+          <ellipse rx="25" ry="5.5" fill="#000"></ellipse>
         </g>
       </svg>
     </div>
@@ -366,8 +364,8 @@
   </div>
 
   <button class="upgrade-tab" id="upgrade-tab" aria-label="Upgrades" type="button">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" fill="currentColor" stroke="currentColor"></path>
+    <svg id="upgrade-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M15 18l-6-6 6-6"></path>
     </svg>
   </button>
 
@@ -375,7 +373,7 @@
     <div class="upgrade-header">
       <h2>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"></path>
+          <path d="M12 19V5M5 12l7-7 7 7"></path>
         </svg>
         Upgrades
       </h2>
@@ -393,7 +391,7 @@
         </div>
         <button class="upgrade-buy" type="button">
           <span class="buy-label">Buy</span>
-          <span class="buy-cost">50</span>
+          <span class="buy-cost">15</span>
         </button>
       </div>
 
@@ -406,7 +404,7 @@
         </div>
         <button class="upgrade-buy" type="button">
           <span class="buy-label">Buy</span>
-          <span class="buy-cost">200</span>
+          <span class="buy-cost">50</span>
         </button>
       </div>
 
@@ -419,7 +417,7 @@
         </div>
         <button class="upgrade-buy" type="button">
           <span class="buy-label">Buy</span>
-          <span class="buy-cost">120</span>
+          <span class="buy-cost">30</span>
         </button>
       </div>
     </div>
@@ -450,8 +448,7 @@
 
 <script>
   // ===========================================================
-  // DVD bounce physics — supports multiple independently bouncing
-  // logos (the "+1 DVD" upgrade adds more of them)
+  // DVD bounce physics 
   // ===========================================================
   const stageEl = document.getElementById('dvd-stage');
   const scoreEl = document.getElementById('score');
@@ -459,20 +456,20 @@
   const cornerFlashEl = document.getElementById('corner-flash');
   const baseLogoEl = document.getElementById('dvd-logo');
   const logoInnerHTML = baseLogoEl.innerHTML;
-  baseLogoEl.removeAttribute('id'); // now just the first of many .dvd-logo balls
+  baseLogoEl.removeAttribute('id');
 
   const COLORS = ['#00f5c4', '#ff3d6e', '#ffd23f', '#7c6cf0', '#00c2ff', '#ff8a3d', '#39ff88', '#ff5ec4', '#ffffff'];
 
-  let balls = []; // { el, x, y, vx, vy, colorIdx }
+  let balls = []; 
   let logoW = 0, logoH = 0, stageW = 0, stageH = 0;
   let score = 0, corners = 0;
   let lastTime = 0;
 
-  // ---- Upgrades ----
+  // ---- Upgrades (Adjusted for faster beating) ----
   const upgrades = {
-    speed:      { level: 0, baseCost: 50,  growth: 1.35 },
-    dvds:       { level: 0, baseCost: 200, growth: 1.6, max: 7 }, // +7 = up to 8 DVDs total
-    multiplier: { level: 0, baseCost: 120, growth: 1.5 }
+    speed:      { level: 0, baseCost: 15,  growth: 1.15 },
+    dvds:       { level: 0, baseCost: 50,  growth: 1.3, max: 7 }, 
+    multiplier: { level: 0, baseCost: 30,  growth: 1.25 }
   };
 
   function upgradeCost(key) {
@@ -507,7 +504,7 @@
   function resetBallPosition(ball) {
     ball.x = Math.random() * Math.max(stageW - logoW, 0);
     ball.y = Math.random() * Math.max(stageH - logoH, 0);
-    const angle = (20 + Math.random() * 50) * (Math.PI / 180); // 20°-70°, avoids near-flat/vertical paths
+    const angle = (20 + Math.random() * 50) * (Math.PI / 180); 
     const speed = 230 * speedMultiplier();
     ball.vx = (Math.random() < 0.5 ? -1 : 1) * speed * Math.cos(angle);
     ball.vy = (Math.random() < 0.5 ? -1 : 1) * speed * Math.sin(angle);
@@ -540,7 +537,7 @@
   function tick(now) {
     if (!lastTime) lastTime = now;
     let dt = (now - lastTime) / 1000;
-    dt = Math.min(dt, 0.05); // clamp so a backgrounded tab doesn't cause a huge jump on return
+    dt = Math.min(dt, 0.05); 
     lastTime = now;
 
     balls.forEach(ball => {
@@ -645,13 +642,22 @@
 
   const upgradeTab = document.getElementById('upgrade-tab');
   const upgradePanel = document.getElementById('upgrade-panel');
+  const tabIconPath = document.querySelector('#upgrade-tab-icon path');
+  
   upgradeTab.addEventListener('click', () => {
     const open = upgradePanel.classList.toggle('open');
     upgradeTab.classList.toggle('shifted', open);
+    
+    // Toggle between < (closed) and > (open)
+    if (open) {
+      tabIconPath.setAttribute('d', 'M9 18l6-6-6-6'); 
+    } else {
+      tabIconPath.setAttribute('d', 'M15 18l-6-6 6-6'); 
+    }
   });
 
   // ===========================================================
-  // Shared arcade chrome — settings panel + bottom game nav
+  // Shared arcade chrome
   // ===========================================================
   (function () {
     const settingsBtn = document.getElementById('settings-btn');
