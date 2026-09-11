@@ -145,6 +145,70 @@
   }
   body.shake { animation: bodyShake 0.35s; }
 
+  /* ============ Upgrade shop (slide-out drawer) ============ */
+  .upgrade-tab {
+    position: fixed; top: 50%; right: 0; transform: translateY(-50%);
+    width: 38px; height: 62px; border-radius: 12px 0 0 12px;
+    background: rgba(10,10,10,0.97); border: 1px solid rgba(255,255,255,0.15); border-right: none;
+    color: #ffd23f; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 50;
+    transition: right .32s cubic-bezier(.2,.8,.2,1), background .2s ease;
+  }
+  .upgrade-tab:hover { background: rgba(255,210,63,0.12); }
+  .upgrade-tab.shifted { right: min(300px, 82vw); }
+  .upgrade-tab svg { width: 18px; height: 18px; }
+
+  .upgrade-panel {
+    position: fixed; top: 0; right: 0; bottom: 0;
+    width: min(300px, 82vw);
+    background: rgba(8, 8, 8, 0.98);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border-left: 1px solid rgba(255,255,255,0.15);
+    padding: 1.4rem 1.2rem;
+    padding-top: max(1.4rem, env(safe-area-inset-top));
+    padding-bottom: max(1.4rem, env(safe-area-inset-bottom));
+    display: flex; flex-direction: column; gap: 16px;
+    transform: translateX(100%);
+    transition: transform .32s cubic-bezier(.2,.8,.2,1);
+    z-index: 45; overflow-y: auto;
+  }
+  .upgrade-panel.open { transform: translateX(0); }
+  .upgrade-panel h2 {
+    font-size: 0.8rem; letter-spacing: 3px; text-transform: uppercase; color: #fff; font-weight: 800;
+  }
+  .upgrade-panel-score {
+    display: flex; flex-direction: column; gap: 2px;
+    padding-bottom: 12px; border-bottom: 1px dashed rgba(255,255,255,0.15);
+  }
+  .upgrade-card {
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px; padding: 12px;
+  }
+  .upgrade-icon {
+    width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,210,63,0.12); color: #ffd23f; font-size: 1.2rem; font-weight: 800;
+  }
+  .upgrade-info { flex: 1; min-width: 0; }
+  .upgrade-name { font-size: 0.88rem; font-weight: 700; color: #fff; }
+  .upgrade-desc { font-size: 0.68rem; color: rgba(255,255,255,0.5); margin-top: 3px; line-height: 1.4; }
+  .upgrade-level {
+    font-size: 0.64rem; color: #00f5c4; margin-top: 5px;
+    letter-spacing: 0.5px; text-transform: uppercase; font-weight: 700;
+  }
+  .upgrade-buy {
+    flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 2px;
+    background: rgba(0,245,196,0.12); border: 1px solid rgba(0,245,196,0.4); color: #00f5c4;
+    border-radius: 10px; padding: 8px 12px; cursor: pointer; font-family: inherit;
+    transition: background .15s ease, opacity .15s ease, transform .1s ease;
+  }
+  .upgrade-buy:hover:not(:disabled) { background: rgba(0,245,196,0.22); transform: translateY(-1px); }
+  .upgrade-buy:active:not(:disabled) { transform: translateY(0) scale(0.96); }
+  .upgrade-buy:disabled { opacity: 0.35; cursor: not-allowed; }
+  .buy-label { font-size: 0.6rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; }
+  .buy-cost { font-size: 0.85rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+
   /* ============ Bottom game nav ============ */
   .game-nav {
     position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom));
@@ -260,6 +324,59 @@
     </div>
   </div>
 
+  <button class="upgrade-tab" id="upgrade-tab" aria-label="Upgrades" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" fill="currentColor" stroke="currentColor"></path>
+    </svg>
+  </button>
+
+  <aside class="upgrade-panel" id="upgrade-panel">
+    <h2>Upgrades</h2>
+    <div class="upgrade-panel-score">
+      <span class="hud-label">DVD Points</span>
+      <span class="hud-value" id="panel-score">0</span>
+    </div>
+
+    <div class="upgrade-card" data-key="speed">
+      <div class="upgrade-icon">⚡</div>
+      <div class="upgrade-info">
+        <div class="upgrade-name">Speed</div>
+        <div class="upgrade-desc">Every DVD moves faster.</div>
+        <div class="upgrade-level">Level <span class="lvl">0</span></div>
+      </div>
+      <button class="upgrade-buy" type="button">
+        <span class="buy-label">Buy</span>
+        <span class="buy-cost">50</span>
+      </button>
+    </div>
+
+    <div class="upgrade-card" data-key="dvds">
+      <div class="upgrade-icon">💿</div>
+      <div class="upgrade-info">
+        <div class="upgrade-name">+1 DVD</div>
+        <div class="upgrade-desc">Adds another bouncing DVD.</div>
+        <div class="upgrade-level">Level <span class="lvl">0</span></div>
+      </div>
+      <button class="upgrade-buy" type="button">
+        <span class="buy-label">Buy</span>
+        <span class="buy-cost">200</span>
+      </button>
+    </div>
+
+    <div class="upgrade-card" data-key="multiplier">
+      <div class="upgrade-icon">×</div>
+      <div class="upgrade-info">
+        <div class="upgrade-name">Multiplier</div>
+        <div class="upgrade-desc">More points per hit.</div>
+        <div class="upgrade-level">Level <span class="lvl">0</span></div>
+      </div>
+      <button class="upgrade-buy" type="button">
+        <span class="buy-label">Buy</span>
+        <span class="buy-cost">120</span>
+      </button>
+    </div>
+  </aside>
+
   <nav class="game-nav" id="game-nav" aria-label="Game navigation" tabindex="0">
     <button class="game-nav-btn" id="back-game-btn" aria-label="Previous game" type="button">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -285,38 +402,76 @@
 
 <script>
   // ===========================================================
-  // DVD bounce physics
+  // DVD bounce physics — supports multiple independently bouncing
+  // logos (the "+1 DVD" upgrade adds more of them)
   // ===========================================================
   const stageEl = document.getElementById('dvd-stage');
-  const logoEl = document.getElementById('dvd-logo');
   const scoreEl = document.getElementById('score');
+  const panelScoreEl = document.getElementById('panel-score');
   const cornerEl = document.getElementById('corner-count');
   const cornerFlashEl = document.getElementById('corner-flash');
+  const baseLogoEl = document.getElementById('dvd-logo');
+  const logoInnerHTML = baseLogoEl.innerHTML;
+  baseLogoEl.removeAttribute('id'); // now just the first of many .dvd-logo balls
 
   const COLORS = ['#00f5c4', '#ff3d6e', '#ffd23f', '#7c6cf0', '#00c2ff', '#ff8a3d', '#39ff88', '#ff5ec4', '#ffffff'];
-  let colorIdx = 0;
 
-  let x = 0, y = 0, vx = 0, vy = 0;
+  let balls = []; // { el, x, y, vx, vy, colorIdx }
   let logoW = 0, logoH = 0, stageW = 0, stageH = 0;
   let score = 0, corners = 0;
   let lastTime = 0;
 
-  function pickNewColor() {
-    let idx;
-    do { idx = Math.floor(Math.random() * COLORS.length); } while (idx === colorIdx && COLORS.length > 1);
-    colorIdx = idx;
-    logoEl.style.color = COLORS[colorIdx];
+  // ---- Upgrades ----
+  const upgrades = {
+    speed:      { level: 0, baseCost: 50,  growth: 1.35 },
+    dvds:       { level: 0, baseCost: 200, growth: 1.6, max: 7 }, // +7 = up to 8 DVDs total
+    multiplier: { level: 0, baseCost: 120, growth: 1.5 }
+  };
+
+  function upgradeCost(key) {
+    const u = upgrades[key];
+    return Math.floor(u.baseCost * Math.pow(u.growth, u.level));
   }
+  function speedMultiplier() { return 1 + upgrades.speed.level * 0.15; }
+  function pointMultiplier() { return 1 + upgrades.multiplier.level * 0.5; }
 
   function measure() {
     stageW = stageEl.clientWidth;
     stageH = stageEl.clientHeight;
-    logoW = logoEl.offsetWidth;
-    logoH = logoEl.offsetHeight;
+    logoW = baseLogoEl.offsetWidth;
+    logoH = baseLogoEl.offsetHeight;
   }
 
-  function render() {
-    logoEl.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+  function pickNewColor(ball) {
+    let idx;
+    do { idx = Math.floor(Math.random() * COLORS.length); } while (idx === ball.colorIdx && COLORS.length > 1);
+    ball.colorIdx = idx;
+    ball.el.style.color = COLORS[idx];
+  }
+
+  function createBallElement() {
+    const el = document.createElement('div');
+    el.className = 'dvd-logo';
+    el.innerHTML = logoInnerHTML;
+    stageEl.appendChild(el);
+    return el;
+  }
+
+  function resetBallPosition(ball) {
+    ball.x = Math.random() * Math.max(stageW - logoW, 0);
+    ball.y = Math.random() * Math.max(stageH - logoH, 0);
+    const angle = (20 + Math.random() * 50) * (Math.PI / 180); // 20°-70°, avoids near-flat/vertical paths
+    const speed = 230 * speedMultiplier();
+    ball.vx = (Math.random() < 0.5 ? -1 : 1) * speed * Math.cos(angle);
+    ball.vy = (Math.random() < 0.5 ? -1 : 1) * speed * Math.sin(angle);
+    pickNewColor(ball);
+    ball.el.style.transform = 'translate(' + ball.x + 'px, ' + ball.y + 'px)';
+  }
+
+  function spawnBall(el) {
+    const ball = { el, x: 0, y: 0, vx: 0, vy: 0, colorIdx: -1 };
+    resetBallPosition(ball);
+    balls.push(ball);
   }
 
   function triggerCornerEffects() {
@@ -329,18 +484,10 @@
     document.body.classList.add('shake');
   }
 
-  function resetPosition() {
-    measure();
-    x = Math.random() * Math.max(stageW - logoW, 0);
-    y = Math.random() * Math.max(stageH - logoH, 0);
-
-    const angle = (20 + Math.random() * 50) * (Math.PI / 180); // 20°-70°, avoids near-flat/vertical paths
-    const speed = 230; // px/sec
-    vx = (Math.random() < 0.5 ? -1 : 1) * speed * Math.cos(angle);
-    vy = (Math.random() < 0.5 ? -1 : 1) * speed * Math.sin(angle);
-
-    pickNewColor();
-    render();
+  function updateScore() {
+    scoreEl.innerText = score;
+    panelScoreEl.innerText = score;
+    renderUpgradePanel();
   }
 
   function tick(now) {
@@ -349,32 +496,35 @@
     dt = Math.min(dt, 0.05); // clamp so a backgrounded tab doesn't cause a huge jump on return
     lastTime = now;
 
-    let nx = x + vx * dt;
-    let ny = y + vy * dt;
-    let hitX = false, hitY = false;
+    balls.forEach(ball => {
+      let nx = ball.x + ball.vx * dt;
+      let ny = ball.y + ball.vy * dt;
+      let hitX = false, hitY = false;
 
-    if (nx <= 0) { nx = 0; vx = -vx; hitX = true; }
-    else if (nx + logoW >= stageW) { nx = stageW - logoW; vx = -vx; hitX = true; }
+      if (nx <= 0) { nx = 0; ball.vx = -ball.vx; hitX = true; }
+      else if (nx + logoW >= stageW) { nx = stageW - logoW; ball.vx = -ball.vx; hitX = true; }
 
-    if (ny <= 0) { ny = 0; vy = -vy; hitY = true; }
-    else if (ny + logoH >= stageH) { ny = stageH - logoH; vy = -vy; hitY = true; }
+      if (ny <= 0) { ny = 0; ball.vy = -ball.vy; hitY = true; }
+      else if (ny + logoH >= stageH) { ny = stageH - logoH; ball.vy = -ball.vy; hitY = true; }
 
-    x = nx; y = ny;
+      ball.x = nx; ball.y = ny;
 
-    if (hitX && hitY) {
-      corners++;
-      score += 100;
-      cornerEl.innerText = corners;
-      scoreEl.innerText = score;
-      pickNewColor();
-      triggerCornerEffects();
-    } else if (hitX || hitY) {
-      score += 1;
-      scoreEl.innerText = score;
-      pickNewColor();
-    }
+      if (hitX && hitY) {
+        corners++;
+        score += Math.round(100 * pointMultiplier());
+        cornerEl.innerText = corners;
+        updateScore();
+        pickNewColor(ball);
+        triggerCornerEffects();
+      } else if (hitX || hitY) {
+        score += Math.round(1 * pointMultiplier());
+        updateScore();
+        pickNewColor(ball);
+      }
 
-    render();
+      ball.el.style.transform = 'translate(' + ball.x + 'px, ' + ball.y + 'px)';
+    });
+
     requestAnimationFrame(tick);
   }
 
@@ -382,14 +532,76 @@
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
-      const prevW = stageW, prevH = stageH;
       measure();
-      if (prevW && prevH) {
-        x = Math.min(x, Math.max(stageW - logoW, 0));
-        y = Math.min(y, Math.max(stageH - logoH, 0));
-      }
-      render();
+      balls.forEach(ball => {
+        ball.x = Math.min(ball.x, Math.max(stageW - logoW, 0));
+        ball.y = Math.min(ball.y, Math.max(stageH - logoH, 0));
+        ball.el.style.transform = 'translate(' + ball.x + 'px, ' + ball.y + 'px)';
+      });
     }, 120);
+  });
+
+  // ---- Upgrade shop ----
+  function buyUpgrade(key) {
+    const u = upgrades[key];
+    if (key === 'dvds' && u.level >= u.max) return;
+
+    const cost = upgradeCost(key);
+    if (score < cost) return;
+    score -= cost;
+
+    if (key === 'speed') {
+      const oldMult = speedMultiplier();
+      u.level++;
+      const ratio = speedMultiplier() / oldMult;
+      balls.forEach(b => { b.vx *= ratio; b.vy *= ratio; });
+    } else if (key === 'dvds') {
+      u.level++;
+      spawnBall(createBallElement());
+    } else {
+      u.level++;
+    }
+
+    updateScore();
+  }
+
+  function renderUpgradePanel() {
+    document.querySelector('.upgrade-card[data-key="speed"] .upgrade-desc').innerText =
+      'Every DVD moves faster — currently +' + Math.round((speedMultiplier() - 1) * 100) + '%.';
+    document.querySelector('.upgrade-card[data-key="dvds"] .upgrade-desc').innerText =
+      balls.length + ' DVD' + (balls.length > 1 ? 's' : '') + ' bouncing right now (max ' + (1 + upgrades.dvds.max) + ').';
+    document.querySelector('.upgrade-card[data-key="multiplier"] .upgrade-desc').innerText =
+      'Points per hit ×' + pointMultiplier().toFixed(1) + '.';
+
+    Object.keys(upgrades).forEach(key => {
+      const card = document.querySelector('.upgrade-card[data-key="' + key + '"]');
+      const u = upgrades[key];
+      card.querySelector('.lvl').innerText = u.level;
+      const costEl = card.querySelector('.buy-cost');
+      const buyBtn = card.querySelector('.upgrade-buy');
+
+      if (key === 'dvds' && u.level >= u.max) {
+        costEl.innerText = 'MAX';
+        buyBtn.disabled = true;
+        return;
+      }
+
+      const cost = upgradeCost(key);
+      costEl.innerText = cost;
+      buyBtn.disabled = score < cost;
+    });
+  }
+
+  document.querySelectorAll('.upgrade-card').forEach(card => {
+    const key = card.dataset.key;
+    card.querySelector('.upgrade-buy').addEventListener('click', () => buyUpgrade(key));
+  });
+
+  const upgradeTab = document.getElementById('upgrade-tab');
+  const upgradePanel = document.getElementById('upgrade-panel');
+  upgradeTab.addEventListener('click', () => {
+    const open = upgradePanel.classList.toggle('open');
+    upgradeTab.classList.toggle('shifted', open);
   });
 
   // ===========================================================
@@ -508,7 +720,9 @@
   })();
 
   window.onload = () => {
-    resetPosition();
+    measure();
+    spawnBall(baseLogoEl);
+    renderUpgradePanel();
     requestAnimationFrame(tick);
   };
 </script>
