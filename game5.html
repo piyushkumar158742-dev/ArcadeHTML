@@ -153,23 +153,21 @@
   /* ============ Upgrade shop ============ */
   .upgrade-tab {
     position: fixed; top: 50%; right: 0; transform: translateY(-50%);
-    width: 40px; height: 66px; border-radius: 14px 0 0 14px;
-    background: rgba(10,10,10,0.97); border: 1px solid rgba(255,210,63,0.3); border-right: none;
+    width: 34px; height: 60px; border-radius: 10px 0 0 10px;
+    background: #0f0f11; border: 1px solid rgba(255,255,255,0.1); border-right: none;
     color: #ffd23f; display: flex; align-items: center; justify-content: center;
     cursor: pointer; z-index: 50;
-    box-shadow: -4px 0 20px rgba(255,210,63,0.1);
     transition: right .32s cubic-bezier(.2,.8,.2,1), background .2s ease;
   }
-  .upgrade-tab:hover { background: rgba(255,210,63,0.14); }
-  .upgrade-tab.shifted { right: min(310px, 84vw); }
-  .upgrade-tab svg { width: 19px; height: 19px; }
+  .upgrade-tab:hover { background: rgba(255,210,63,0.1); }
+  .upgrade-tab.shifted { right: min(320px, 86vw); }
+  .upgrade-tab svg { width: 18px; height: 18px; }
 
   .upgrade-panel {
     position: fixed; top: 0; right: 0; bottom: 0;
-    width: min(310px, 84vw);
-    background: rgba(8, 8, 10, 0.98);
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    border-left: 1px solid rgba(255,255,255,0.12);
+    width: min(320px, 86vw);
+    background: #0a0a0c;
+    border-left: 1px solid rgba(255,255,255,0.08);
     display: flex; flex-direction: column;
     transform: translateX(100%);
     transition: transform .32s cubic-bezier(.2,.8,.2,1);
@@ -180,37 +178,34 @@
   .upgrade-header {
     padding: 1.4rem 1.3rem 1rem;
     padding-top: max(1.4rem, env(safe-area-inset-top));
-    background: linear-gradient(135deg, rgba(255,210,63,0.08), transparent);
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
   }
   .upgrade-header h2 {
-    font-size: 0.72rem; letter-spacing: 3px; text-transform: uppercase; color: #fff; font-weight: 800;
-    display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+    font-size: 0.68rem; letter-spacing: 3px; text-transform: uppercase; color: #aaa; font-weight: 700;
+    display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
   }
-  .upgrade-header h2 svg { width: 15px; height: 15px; color: #ffd23f; }
+  .upgrade-header h2 svg { width: 14px; height: 14px; color: #ffd23f; }
   .upgrade-panel-score-label {
-    font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase;
-    color: rgba(255,255,255,0.4); font-weight: 500;
+    font-size: 0.55rem; letter-spacing: 2px; text-transform: uppercase;
+    color: rgba(255,255,255,0.4); font-weight: 600;
   }
   .upgrade-panel-score {
-    font-size: 1.7rem; font-weight: 800; color: #ffd23f;
+    font-size: 1.6rem; font-weight: 700; color: #ffd23f;
     font-variant-numeric: tabular-nums;
-    text-shadow: 0 0 20px rgba(255,210,63,0.3);
   }
 
   .upgrade-list {
-    padding: 1rem 1.1rem;
+    padding: 1.2rem 1.1rem;
     padding-bottom: max(1.4rem, env(safe-area-inset-bottom));
-    display: flex; flex-direction: column; gap: 12px;
+    display: flex; flex-direction: column; gap: 10px;
   }
 
   .upgrade-card {
     position: relative;
     display: flex; align-items: center; gap: 12px;
-    background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.09);
-    border-radius: 14px; padding: 12px 12px 12px 16px;
+    background: #121214; border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px; padding: 10px 10px 10px 14px;
     overflow: hidden;
-    transition: border-color .2s ease, background .2s ease;
   }
   .upgrade-card::before {
     content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
@@ -219,34 +214,52 @@
   .upgrade-card[data-key="speed"]      { --accent: #00f5c4; }
   .upgrade-card[data-key="dvds"]       { --accent: #7c6cf0; }
   .upgrade-card[data-key="multiplier"] { --accent: #ffd23f; }
-  .upgrade-card:hover { border-color: rgba(255,255,255,0.18); background: rgba(255,255,255,0.055); }
 
   .upgrade-icon {
-    width: 42px; height: 42px; border-radius: 11px; flex-shrink: 0;
+    width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    background: color-mix(in srgb, var(--accent) 16%, transparent);
-    color: var(--accent); font-size: 1.25rem; font-weight: 800;
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    color: var(--accent); font-size: 1.1rem; font-weight: 800;
   }
   .upgrade-info { flex: 1; min-width: 0; }
-  .upgrade-name { font-size: 0.9rem; font-weight: 700; color: #fff; }
-  .upgrade-desc { font-size: 0.68rem; color: rgba(255,255,255,0.5); margin-top: 3px; line-height: 1.4; }
+  .upgrade-name { font-size: 0.85rem; font-weight: 700; color: #e0e0e0; display: flex; align-items: center; gap: 6px; }
   .upgrade-level {
-    font-size: 0.62rem; color: var(--accent); margin-top: 6px;
+    font-size: 0.55rem; color: var(--accent);
     letter-spacing: 0.5px; text-transform: uppercase; font-weight: 700;
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    padding: 2px 6px; border-radius: 6px;
   }
+  .upgrade-desc { font-size: 0.65rem; color: #888; margin-top: 4px; }
+  
+  .upgrade-actions {
+    display: flex; gap: 6px; align-items: stretch; flex-shrink: 0;
+  }
+
+  /* New Devolve Button */
+  .devolve-btn {
+    width: 28px; border-radius: 8px;
+    background: transparent; border: 1px solid rgba(255,255,255,0.08);
+    color: #666; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all .15s ease;
+  }
+  .devolve-btn:hover:not(:disabled) { 
+    background: rgba(255,60,60,0.1); border-color: rgba(255,60,60,0.3); color: #ff5555; 
+  }
+  .devolve-btn:disabled { opacity: 0.2; cursor: not-allowed; }
+  .devolve-btn svg { width: 14px; height: 14px; }
+
   .upgrade-buy {
-    flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 2px;
-    background: color-mix(in srgb, var(--accent) 14%, transparent);
-    border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
-    color: var(--accent);
-    border-radius: 10px; padding: 8px 13px; cursor: pointer; font-family: inherit;
-    transition: background .15s ease, opacity .15s ease, transform .1s ease;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    color: var(--accent); min-width: 50px;
+    border-radius: 8px; padding: 6px 10px; cursor: pointer; font-family: inherit;
+    transition: background .15s ease, opacity .15s ease;
   }
-  .upgrade-buy:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 26%, transparent); transform: translateY(-1px); }
-  .upgrade-buy:active:not(:disabled) { transform: translateY(0) scale(0.96); }
-  .upgrade-buy:disabled { opacity: 0.3; cursor: not-allowed; }
-  .buy-label { font-size: 0.58rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; }
-  .buy-cost { font-size: 0.88rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .upgrade-buy:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+  .upgrade-buy:disabled { opacity: 0.25; cursor: not-allowed; }
+  .buy-label { font-size: 0.5rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; }
+  .buy-cost { font-size: 0.8rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 
   /* ============ Bottom game nav ============ */
   .game-nav {
@@ -385,40 +398,52 @@
       <div class="upgrade-card" data-key="speed">
         <div class="upgrade-icon">⚡</div>
         <div class="upgrade-info">
-          <div class="upgrade-name">Speed</div>
-          <div class="upgrade-desc">Every DVD moves faster.</div>
-          <div class="upgrade-level">Level <span class="lvl">0</span></div>
+          <div class="upgrade-name">Speed <span class="upgrade-level lvl">0</span></div>
+          <div class="upgrade-desc"></div>
         </div>
-        <button class="upgrade-buy" type="button">
-          <span class="buy-label">Buy</span>
-          <span class="buy-cost">15</span>
-        </button>
+        <div class="upgrade-actions">
+          <button class="devolve-btn" type="button" title="Refund Level">
+            <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          </button>
+          <button class="upgrade-buy" type="button">
+            <span class="buy-label">Buy</span>
+            <span class="buy-cost">15</span>
+          </button>
+        </div>
       </div>
 
       <div class="upgrade-card" data-key="dvds">
         <div class="upgrade-icon">💿</div>
         <div class="upgrade-info">
-          <div class="upgrade-name">+1 DVD</div>
-          <div class="upgrade-desc">Adds another bouncing DVD.</div>
-          <div class="upgrade-level">Level <span class="lvl">0</span></div>
+          <div class="upgrade-name">+1 DVD <span class="upgrade-level lvl">0</span></div>
+          <div class="upgrade-desc"></div>
         </div>
-        <button class="upgrade-buy" type="button">
-          <span class="buy-label">Buy</span>
-          <span class="buy-cost">50</span>
-        </button>
+        <div class="upgrade-actions">
+          <button class="devolve-btn" type="button" title="Refund Level">
+            <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          </button>
+          <button class="upgrade-buy" type="button">
+            <span class="buy-label">Buy</span>
+            <span class="buy-cost">50</span>
+          </button>
+        </div>
       </div>
 
       <div class="upgrade-card" data-key="multiplier">
         <div class="upgrade-icon">×</div>
         <div class="upgrade-info">
-          <div class="upgrade-name">Multiplier</div>
-          <div class="upgrade-desc">More points per hit.</div>
-          <div class="upgrade-level">Level <span class="lvl">0</span></div>
+          <div class="upgrade-name">Score <span class="upgrade-level lvl">0</span></div>
+          <div class="upgrade-desc"></div>
         </div>
-        <button class="upgrade-buy" type="button">
-          <span class="buy-label">Buy</span>
-          <span class="buy-cost">30</span>
-        </button>
+        <div class="upgrade-actions">
+          <button class="devolve-btn" type="button" title="Refund Level">
+            <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          </button>
+          <button class="upgrade-buy" type="button">
+            <span class="buy-label">Buy</span>
+            <span class="buy-cost">30</span>
+          </button>
+        </div>
       </div>
     </div>
   </aside>
@@ -465,16 +490,15 @@
   let score = 0, corners = 0;
   let lastTime = 0;
 
-  // ---- Upgrades (Adjusted for faster beating) ----
   const upgrades = {
     speed:      { level: 0, baseCost: 15,  growth: 1.15 },
     dvds:       { level: 0, baseCost: 50,  growth: 1.3, max: 7 }, 
     multiplier: { level: 0, baseCost: 30,  growth: 1.25 }
   };
 
-  function upgradeCost(key) {
+  function upgradeCost(key, levelOffset = 0) {
     const u = upgrades[key];
-    return Math.floor(u.baseCost * Math.pow(u.growth, u.level));
+    return Math.floor(u.baseCost * Math.pow(u.growth, u.level + levelOffset));
   }
   function speedMultiplier() { return 1 + upgrades.speed.level * 0.15; }
   function pointMultiplier() { return 1 + upgrades.multiplier.level * 0.5; }
@@ -604,24 +628,54 @@
     } else {
       u.level++;
     }
+    updateScore();
+  }
 
+  function devolveUpgrade(key) {
+    const u = upgrades[key];
+    if (u.level <= 0) return;
+
+    // Refund exactly half of what the PREVIOUS level cost
+    const lastCost = upgradeCost(key, -1);
+    score += Math.floor(lastCost / 2);
+
+    if (key === 'speed') {
+      const oldMult = speedMultiplier();
+      u.level--;
+      const ratio = speedMultiplier() / oldMult;
+      balls.forEach(b => { b.vx *= ratio; b.vy *= ratio; });
+    } else if (key === 'dvds') {
+      u.level--;
+      const removedBall = balls.pop();
+      if (removedBall && removedBall.el && removedBall.el.parentNode) {
+        removedBall.el.parentNode.removeChild(removedBall.el);
+      }
+    } else {
+      u.level--;
+    }
     updateScore();
   }
 
   function renderUpgradePanel() {
+    // Simplified descriptions for a cleaner UI
     document.querySelector('.upgrade-card[data-key="speed"] .upgrade-desc').innerText =
-      'Every DVD moves faster — currently +' + Math.round((speedMultiplier() - 1) * 100) + '%.';
+      '+' + Math.round((speedMultiplier() - 1) * 100) + '% velocity';
     document.querySelector('.upgrade-card[data-key="dvds"] .upgrade-desc').innerText =
-      balls.length + ' DVD' + (balls.length > 1 ? 's' : '') + ' bouncing right now (max ' + (1 + upgrades.dvds.max) + ').';
+      balls.length + ' / ' + (1 + upgrades.dvds.max) + ' active';
     document.querySelector('.upgrade-card[data-key="multiplier"] .upgrade-desc').innerText =
-      'Points per hit ×' + pointMultiplier().toFixed(1) + '.';
+      '×' + pointMultiplier().toFixed(1) + ' per hit';
 
     Object.keys(upgrades).forEach(key => {
       const card = document.querySelector('.upgrade-card[data-key="' + key + '"]');
       const u = upgrades[key];
-      card.querySelector('.lvl').innerText = u.level;
+      
+      card.querySelector('.lvl').innerText = `Lvl ${u.level}`;
+      
       const costEl = card.querySelector('.buy-cost');
       const buyBtn = card.querySelector('.upgrade-buy');
+      const devolveBtn = card.querySelector('.devolve-btn');
+
+      devolveBtn.disabled = u.level === 0;
 
       if (key === 'dvds' && u.level >= u.max) {
         costEl.innerText = 'MAX';
@@ -638,6 +692,7 @@
   document.querySelectorAll('.upgrade-card').forEach(card => {
     const key = card.dataset.key;
     card.querySelector('.upgrade-buy').addEventListener('click', () => buyUpgrade(key));
+    card.querySelector('.devolve-btn').addEventListener('click', () => devolveUpgrade(key));
   });
 
   const upgradeTab = document.getElementById('upgrade-tab');
@@ -647,8 +702,6 @@
   upgradeTab.addEventListener('click', () => {
     const open = upgradePanel.classList.toggle('open');
     upgradeTab.classList.toggle('shifted', open);
-    
-    // Toggle between < (closed) and > (open)
     if (open) {
       tabIconPath.setAttribute('d', 'M9 18l6-6-6-6'); 
     } else {
@@ -777,6 +830,34 @@
     renderUpgradePanel();
     requestAnimationFrame(tick);
   };
+
+  // ===========================================================
+  // --- DEBUG CONTROLS --- 
+  // To remove these controls later, simply delete this block.
+  // - Press '1': Adds 50 points directly to your score.
+  // - Press '2': Warps the first DVD to the top-left and forces 
+  //   its trajectory to hit the bottom-right corner in exactly 3 seconds.
+  // ===========================================================
+  window.addEventListener('keydown', (e) => {
+    if (e.key === '1') {
+      score += 50;
+      updateScore();
+      console.log("Debug: 50 points added.");
+    } else if (e.key === '2') {
+      if (balls.length > 0) {
+        const b = balls[0];
+        // Move to origin
+        b.x = 0;
+        b.y = 0;
+        // Calculate velocity required to cross the full screen width/height in 3 seconds
+        b.vx = (stageW - logoW) / 3;
+        b.vy = (stageH - logoH) / 3;
+        b.el.style.transform = `translate(${b.x}px, ${b.y}px)`;
+        console.log("Debug: DVD 1 trajectory forced to hit corner in 3s.");
+      }
+    }
+  });
+  // ===========================================================
 </script>
 </body>
 </html>
