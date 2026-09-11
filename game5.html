@@ -12,8 +12,6 @@
   body {
     color: #eaeaea;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    display: flex;
-    flex-direction: column;
     height: 100vh;
     height: 100dvh;
     overflow: hidden;
@@ -21,82 +19,13 @@
     user-select: none;
   }
 
-  /* ============ Top bar ============ */
-  .topbar {
-    flex: 0 0 auto;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 1rem 1.4rem;
-    z-index: 20; position: relative;
-  }
-  .game-title {
-    font-size: clamp(0.85rem, 2.4vw, 1.05rem);
-    font-weight: 800; letter-spacing: 3px; text-transform: uppercase;
-    color: #ffffff;
-  }
-  .settings-btn {
-    width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.15); color: #cfcfcf;
-    cursor: pointer; transition: background .2s ease, color .2s ease, border-color .2s ease;
-  }
-  .settings-btn:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.35); }
-  .settings-btn svg { width: 16px; height: 16px; }
-
-  .settings-panel {
-    position: fixed; top: 4.2rem; right: 1.4rem;
-    width: min(240px, 80vw);
-    background: rgba(10, 10, 10, 0.97);
-    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255,255,255,0.15); border-radius: 14px;
-    padding: 14px; z-index: 40;
-    opacity: 0; pointer-events: none; transform: translateY(-8px);
-    transition: opacity .2s ease, transform .2s ease;
-  }
-  .settings-panel.open { opacity: 1; pointer-events: auto; transform: translateY(0); }
-  .settings-panel h2 {
-    font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase;
-    color: rgba(255,255,255,0.5); margin-bottom: 10px; font-weight: 700;
-  }
-  .settings-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; }
-  .settings-row span { font-size: 0.82rem; color: #eaeaea; }
-  .settings-toggle {
-    width: 36px; height: 20px; border-radius: 20px;
-    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
-    position: relative; cursor: pointer; transition: background .2s ease; flex-shrink: 0;
-  }
-  .settings-toggle::after {
-    content: ''; position: absolute; top: 2px; left: 2px;
-    width: 14px; height: 14px; border-radius: 50%;
-    background: #cfcfcf; transition: transform .2s ease, background .2s ease;
-  }
-  .settings-toggle.on { background: rgba(255,255,255,0.3); border-color: #fff; }
-  .settings-toggle.on::after { transform: translateX(16px); background: #fff; }
-
-  /* ============ HUD ============ */
-  .hud {
-    flex: 0 0 auto;
-    display: flex; justify-content: space-between; align-items: flex-start;
-    padding: 0 1.4rem 0.6rem;
-    z-index: 2;
-  }
-  .hud-block { display: flex; flex-direction: column; gap: 2px; }
-  .hud-label {
-    font-size: 0.62rem; letter-spacing: 3px; text-transform: uppercase;
-    color: rgba(255,255,255,0.4); font-weight: 500;
-  }
-  .hud-value {
-    font-size: clamp(1.1rem, 3.4vw, 1.4rem); font-weight: 700; color: #ffffff;
-    font-variant-numeric: tabular-nums;
-  }
-  #corner-count { color: #ffd23f; }
-
-  /* ============ Stage ============ */
+  /* ============ Full-bleed stage — the ball's walls are the actual
+     screen edges now, with the HUD/nav floating on top of it ============ */
   .dvd-stage {
-    flex: 1; min-height: 0;
-    position: relative;
+    position: fixed; inset: 0;
     overflow: hidden;
     background: #000;
+    z-index: 1;
   }
 
   .dvd-logo {
@@ -110,7 +39,7 @@
   .dvd-logo svg { display: block; width: 100%; height: auto; }
 
   .corner-flash {
-    position: absolute; inset: 0; pointer-events: none;
+    position: fixed; inset: 0; pointer-events: none;
     display: flex; align-items: center; justify-content: center;
     z-index: 5;
   }
@@ -145,69 +74,180 @@
   }
   body.shake { animation: bodyShake 0.35s; }
 
+  /* ============ Top overlay (title + score + settings) ============ */
+  .top-overlay {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 20;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.75), transparent);
+    padding-bottom: 40px;
+  }
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 1.4rem 0.4rem;
+  }
+  .game-title-wrap { display: flex; align-items: center; gap: 8px; }
+  .game-title-wrap svg { width: 20px; height: 20px; color: #ffd23f; }
+  .game-title {
+    font-size: clamp(0.85rem, 2.4vw, 1.05rem);
+    font-weight: 800; letter-spacing: 3px; text-transform: uppercase;
+    color: #ffffff;
+  }
+  .settings-btn {
+    width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15); color: #cfcfcf;
+    cursor: pointer; transition: background .2s ease, color .2s ease, border-color .2s ease;
+  }
+  .settings-btn:hover { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.35); }
+  .settings-btn svg { width: 16px; height: 16px; }
+
+  .settings-panel {
+    position: fixed; top: 4.2rem; right: 1.4rem;
+    width: min(240px, 80vw);
+    background: rgba(10, 10, 10, 0.97);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 14px;
+    padding: 14px; z-index: 40;
+    opacity: 0; pointer-events: none; transform: translateY(-8px);
+    transition: opacity .2s ease, transform .2s ease;
+  }
+  .settings-panel.open { opacity: 1; pointer-events: auto; transform: translateY(0); }
+  .settings-panel h2 {
+    font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase;
+    color: rgba(255,255,255,0.5); margin-bottom: 10px; font-weight: 700;
+  }
+  .settings-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; }
+  .settings-row span { font-size: 0.82rem; color: #eaeaea; }
+  .settings-toggle {
+    width: 36px; height: 20px; border-radius: 20px;
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+    position: relative; cursor: pointer; transition: background .2s ease; flex-shrink: 0;
+  }
+  .settings-toggle::after {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: #cfcfcf; transition: transform .2s ease, background .2s ease;
+  }
+  .settings-toggle.on { background: rgba(255,255,255,0.3); border-color: #fff; }
+  .settings-toggle.on::after { transform: translateX(16px); background: #fff; }
+
+  /* ============ Score chip ============ */
+  .score-chip {
+    margin: 0.2rem 1.4rem 0;
+    display: inline-flex; flex-direction: column; gap: 1px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 8px 16px;
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  }
+  .hud-label {
+    font-size: 0.6rem; letter-spacing: 3px; text-transform: uppercase;
+    color: rgba(255,255,255,0.4); font-weight: 500;
+  }
+  .hud-value {
+    font-size: clamp(1.15rem, 3.4vw, 1.5rem); font-weight: 700; color: #ffffff;
+    font-variant-numeric: tabular-nums;
+  }
+
   /* ============ Upgrade shop (slide-out drawer) ============ */
   .upgrade-tab {
     position: fixed; top: 50%; right: 0; transform: translateY(-50%);
-    width: 38px; height: 62px; border-radius: 12px 0 0 12px;
-    background: rgba(10,10,10,0.97); border: 1px solid rgba(255,255,255,0.15); border-right: none;
+    width: 40px; height: 66px; border-radius: 14px 0 0 14px;
+    background: rgba(10,10,10,0.97); border: 1px solid rgba(255,210,63,0.3); border-right: none;
     color: #ffd23f; display: flex; align-items: center; justify-content: center;
     cursor: pointer; z-index: 50;
+    box-shadow: -4px 0 20px rgba(255,210,63,0.1);
     transition: right .32s cubic-bezier(.2,.8,.2,1), background .2s ease;
   }
-  .upgrade-tab:hover { background: rgba(255,210,63,0.12); }
-  .upgrade-tab.shifted { right: min(300px, 82vw); }
-  .upgrade-tab svg { width: 18px; height: 18px; }
+  .upgrade-tab:hover { background: rgba(255,210,63,0.14); }
+  .upgrade-tab.shifted { right: min(310px, 84vw); }
+  .upgrade-tab svg { width: 19px; height: 19px; }
 
   .upgrade-panel {
     position: fixed; top: 0; right: 0; bottom: 0;
-    width: min(300px, 82vw);
-    background: rgba(8, 8, 8, 0.98);
-    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-    border-left: 1px solid rgba(255,255,255,0.15);
-    padding: 1.4rem 1.2rem;
-    padding-top: max(1.4rem, env(safe-area-inset-top));
-    padding-bottom: max(1.4rem, env(safe-area-inset-bottom));
-    display: flex; flex-direction: column; gap: 16px;
+    width: min(310px, 84vw);
+    background: rgba(8, 8, 10, 0.98);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-left: 1px solid rgba(255,255,255,0.12);
+    display: flex; flex-direction: column;
     transform: translateX(100%);
     transition: transform .32s cubic-bezier(.2,.8,.2,1);
     z-index: 45; overflow-y: auto;
   }
   .upgrade-panel.open { transform: translateX(0); }
-  .upgrade-panel h2 {
-    font-size: 0.8rem; letter-spacing: 3px; text-transform: uppercase; color: #fff; font-weight: 800;
+
+  .upgrade-header {
+    padding: 1.4rem 1.3rem 1rem;
+    padding-top: max(1.4rem, env(safe-area-inset-top));
+    background: linear-gradient(135deg, rgba(255,210,63,0.08), transparent);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .upgrade-header h2 {
+    font-size: 0.72rem; letter-spacing: 3px; text-transform: uppercase; color: #fff; font-weight: 800;
+    display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+  }
+  .upgrade-header h2 svg { width: 15px; height: 15px; color: #ffd23f; }
+  .upgrade-panel-score-label {
+    font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase;
+    color: rgba(255,255,255,0.4); font-weight: 500;
   }
   .upgrade-panel-score {
-    display: flex; flex-direction: column; gap: 2px;
-    padding-bottom: 12px; border-bottom: 1px dashed rgba(255,255,255,0.15);
+    font-size: 1.7rem; font-weight: 800; color: #ffd23f;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 20px rgba(255,210,63,0.3);
   }
+
+  .upgrade-list {
+    padding: 1rem 1.1rem;
+    padding-bottom: max(1.4rem, env(safe-area-inset-bottom));
+    display: flex; flex-direction: column; gap: 12px;
+  }
+
   .upgrade-card {
+    position: relative;
     display: flex; align-items: center; gap: 12px;
-    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 14px; padding: 12px;
+    background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 14px; padding: 12px 12px 12px 16px;
+    overflow: hidden;
+    transition: border-color .2s ease, background .2s ease;
   }
+  .upgrade-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--accent);
+  }
+  .upgrade-card[data-key="speed"]      { --accent: #00f5c4; }
+  .upgrade-card[data-key="dvds"]       { --accent: #7c6cf0; }
+  .upgrade-card[data-key="multiplier"] { --accent: #ffd23f; }
+  .upgrade-card:hover { border-color: rgba(255,255,255,0.18); background: rgba(255,255,255,0.055); }
+
   .upgrade-icon {
-    width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+    width: 42px; height: 42px; border-radius: 11px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    background: rgba(255,210,63,0.12); color: #ffd23f; font-size: 1.2rem; font-weight: 800;
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+    color: var(--accent); font-size: 1.25rem; font-weight: 800;
   }
   .upgrade-info { flex: 1; min-width: 0; }
-  .upgrade-name { font-size: 0.88rem; font-weight: 700; color: #fff; }
+  .upgrade-name { font-size: 0.9rem; font-weight: 700; color: #fff; }
   .upgrade-desc { font-size: 0.68rem; color: rgba(255,255,255,0.5); margin-top: 3px; line-height: 1.4; }
   .upgrade-level {
-    font-size: 0.64rem; color: #00f5c4; margin-top: 5px;
+    font-size: 0.62rem; color: var(--accent); margin-top: 6px;
     letter-spacing: 0.5px; text-transform: uppercase; font-weight: 700;
   }
   .upgrade-buy {
     flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 2px;
-    background: rgba(0,245,196,0.12); border: 1px solid rgba(0,245,196,0.4); color: #00f5c4;
-    border-radius: 10px; padding: 8px 12px; cursor: pointer; font-family: inherit;
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+    color: var(--accent);
+    border-radius: 10px; padding: 8px 13px; cursor: pointer; font-family: inherit;
     transition: background .15s ease, opacity .15s ease, transform .1s ease;
   }
-  .upgrade-buy:hover:not(:disabled) { background: rgba(0,245,196,0.22); transform: translateY(-1px); }
+  .upgrade-buy:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 26%, transparent); transform: translateY(-1px); }
   .upgrade-buy:active:not(:disabled) { transform: translateY(0) scale(0.96); }
-  .upgrade-buy:disabled { opacity: 0.35; cursor: not-allowed; }
-  .buy-label { font-size: 0.6rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; }
-  .buy-cost { font-size: 0.85rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .upgrade-buy:disabled { opacity: 0.3; cursor: not-allowed; }
+  .buy-label { font-size: 0.58rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; }
+  .buy-cost { font-size: 0.88rem; font-weight: 800; font-variant-numeric: tabular-nums; }
 
   /* ============ Bottom game nav ============ */
   .game-nav {
@@ -278,36 +318,6 @@
 </head>
 <body data-game-index="4">
 
-  <div class="topbar">
-    <span class="game-title">DVD Bounce</span>
-    <button id="settings-btn" class="settings-btn" aria-label="Settings" aria-haspopup="true" aria-expanded="false" type="button">
-      <svg viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="5" r="1.6" fill="currentColor"></circle>
-        <circle cx="12" cy="12" r="1.6" fill="currentColor"></circle>
-        <circle cx="12" cy="19" r="1.6" fill="currentColor"></circle>
-      </svg>
-    </button>
-  </div>
-
-  <div class="settings-panel" id="settings-panel" role="dialog" aria-label="Settings">
-    <h2>Settings</h2>
-    <div class="settings-row">
-      <span>Sound</span>
-      <button class="settings-toggle" id="sound-toggle" role="switch" aria-checked="true" type="button"></button>
-    </div>
-  </div>
-
-  <div class="hud">
-    <div class="hud-block">
-      <span class="hud-label">Score</span>
-      <span class="hud-value" id="score">0</span>
-    </div>
-    <div class="hud-block" style="align-items:flex-end;">
-      <span class="hud-label">Corners</span>
-      <span class="hud-value" id="corner-count">0</span>
-    </div>
-  </div>
-
   <div class="dvd-stage" id="dvd-stage">
     <div class="dvd-logo" id="dvd-logo">
       <svg viewBox="0 0 200 112" xmlns="http://www.w3.org/2000/svg">
@@ -319,8 +329,39 @@
         </g>
       </svg>
     </div>
-    <div class="corner-flash" id="corner-flash">
-      <span class="corner-flash-text">CORNER! +100</span>
+  </div>
+  <div class="corner-flash" id="corner-flash">
+    <span class="corner-flash-text">CORNER! +100</span>
+  </div>
+
+  <div class="top-overlay">
+    <div class="topbar">
+      <div class="game-title-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"></circle>
+          <circle cx="12" cy="12" r="2.5" fill="currentColor"></circle>
+        </svg>
+        <span class="game-title">DVD Bounce</span>
+      </div>
+      <button id="settings-btn" class="settings-btn" aria-label="Settings" aria-haspopup="true" aria-expanded="false" type="button">
+        <svg viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="5" r="1.6" fill="currentColor"></circle>
+          <circle cx="12" cy="12" r="1.6" fill="currentColor"></circle>
+          <circle cx="12" cy="19" r="1.6" fill="currentColor"></circle>
+        </svg>
+      </button>
+    </div>
+    <div class="score-chip">
+      <span class="hud-label">Score</span>
+      <span class="hud-value" id="score">0</span>
+    </div>
+  </div>
+
+  <div class="settings-panel" id="settings-panel" role="dialog" aria-label="Settings">
+    <h2>Settings</h2>
+    <div class="settings-row">
+      <span>Sound</span>
+      <button class="settings-toggle" id="sound-toggle" role="switch" aria-checked="true" type="button"></button>
     </div>
   </div>
 
@@ -331,49 +372,56 @@
   </button>
 
   <aside class="upgrade-panel" id="upgrade-panel">
-    <h2>Upgrades</h2>
-    <div class="upgrade-panel-score">
-      <span class="hud-label">DVD Points</span>
-      <span class="hud-value" id="panel-score">0</span>
+    <div class="upgrade-header">
+      <h2>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"></path>
+        </svg>
+        Upgrades
+      </h2>
+      <div class="upgrade-panel-score-label">DVD Points</div>
+      <div class="upgrade-panel-score" id="panel-score">0</div>
     </div>
 
-    <div class="upgrade-card" data-key="speed">
-      <div class="upgrade-icon">⚡</div>
-      <div class="upgrade-info">
-        <div class="upgrade-name">Speed</div>
-        <div class="upgrade-desc">Every DVD moves faster.</div>
-        <div class="upgrade-level">Level <span class="lvl">0</span></div>
+    <div class="upgrade-list">
+      <div class="upgrade-card" data-key="speed">
+        <div class="upgrade-icon">⚡</div>
+        <div class="upgrade-info">
+          <div class="upgrade-name">Speed</div>
+          <div class="upgrade-desc">Every DVD moves faster.</div>
+          <div class="upgrade-level">Level <span class="lvl">0</span></div>
+        </div>
+        <button class="upgrade-buy" type="button">
+          <span class="buy-label">Buy</span>
+          <span class="buy-cost">50</span>
+        </button>
       </div>
-      <button class="upgrade-buy" type="button">
-        <span class="buy-label">Buy</span>
-        <span class="buy-cost">50</span>
-      </button>
-    </div>
 
-    <div class="upgrade-card" data-key="dvds">
-      <div class="upgrade-icon">💿</div>
-      <div class="upgrade-info">
-        <div class="upgrade-name">+1 DVD</div>
-        <div class="upgrade-desc">Adds another bouncing DVD.</div>
-        <div class="upgrade-level">Level <span class="lvl">0</span></div>
+      <div class="upgrade-card" data-key="dvds">
+        <div class="upgrade-icon">💿</div>
+        <div class="upgrade-info">
+          <div class="upgrade-name">+1 DVD</div>
+          <div class="upgrade-desc">Adds another bouncing DVD.</div>
+          <div class="upgrade-level">Level <span class="lvl">0</span></div>
+        </div>
+        <button class="upgrade-buy" type="button">
+          <span class="buy-label">Buy</span>
+          <span class="buy-cost">200</span>
+        </button>
       </div>
-      <button class="upgrade-buy" type="button">
-        <span class="buy-label">Buy</span>
-        <span class="buy-cost">200</span>
-      </button>
-    </div>
 
-    <div class="upgrade-card" data-key="multiplier">
-      <div class="upgrade-icon">×</div>
-      <div class="upgrade-info">
-        <div class="upgrade-name">Multiplier</div>
-        <div class="upgrade-desc">More points per hit.</div>
-        <div class="upgrade-level">Level <span class="lvl">0</span></div>
+      <div class="upgrade-card" data-key="multiplier">
+        <div class="upgrade-icon">×</div>
+        <div class="upgrade-info">
+          <div class="upgrade-name">Multiplier</div>
+          <div class="upgrade-desc">More points per hit.</div>
+          <div class="upgrade-level">Level <span class="lvl">0</span></div>
+        </div>
+        <button class="upgrade-buy" type="button">
+          <span class="buy-label">Buy</span>
+          <span class="buy-cost">120</span>
+        </button>
       </div>
-      <button class="upgrade-buy" type="button">
-        <span class="buy-label">Buy</span>
-        <span class="buy-cost">120</span>
-      </button>
     </div>
   </aside>
 
@@ -408,7 +456,6 @@
   const stageEl = document.getElementById('dvd-stage');
   const scoreEl = document.getElementById('score');
   const panelScoreEl = document.getElementById('panel-score');
-  const cornerEl = document.getElementById('corner-count');
   const cornerFlashEl = document.getElementById('corner-flash');
   const baseLogoEl = document.getElementById('dvd-logo');
   const logoInnerHTML = baseLogoEl.innerHTML;
@@ -512,7 +559,6 @@
       if (hitX && hitY) {
         corners++;
         score += Math.round(100 * pointMultiplier());
-        cornerEl.innerText = corners;
         updateScore();
         pickNewColor(ball);
         triggerCornerEffects();
