@@ -148,9 +148,7 @@
     { name:"Game 2", url:"game2.html" },
     { name:"Game 3", url:"game3.html" },
     { name:"Game 4", url:"game4.html" },
-    { name:"Game 5", url:"game5.html" },
-    { name:"Game 6", url:"game6.html" },
-    { name:"Game 7", url:"game7.html" }
+    { name:"Game 5", url:"game5.html" }
   ];
   var currentGameIndex = parseInt(document.body.getAttribute('data-game-index'), 10) || 0;
 
