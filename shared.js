@@ -107,11 +107,59 @@
     }, 200);
   });
 
+  /* ============ Background music (persists across pages) ============ */
+  var bgMusic = new Audio('The_Uncharted_Perimeter.mp3');
+  bgMusic.loop = true;
+  bgMusic.volume = 0.5;
+
+  window.__arcadeSoundOn = function(){
+    var v = localStorage.getItem('arcadeSoundOn');
+    return v === null ? true : v === '1';
+  };
+
+  function applyMusicState(){
+    if(window.__arcadeSoundOn()){
+      var playPromise = bgMusic.play();
+      if(playPromise && playPromise.catch){
+        playPromise.catch(function(){
+          function resumeOnGesture(){ bgMusic.play().catch(function(){}); }
+          document.addEventListener('click', resumeOnGesture, {once:true});
+          document.addEventListener('keydown', resumeOnGesture, {once:true});
+          document.addEventListener('touchstart', resumeOnGesture, {once:true});
+        });
+      }
+    } else {
+      bgMusic.pause();
+    }
+  }
+
+  var savedMusicTime = parseFloat(sessionStorage.getItem('arcadeMusicTime'));
+  if(!isNaN(savedMusicTime)){
+    bgMusic.addEventListener('loadedmetadata', function(){
+      bgMusic.currentTime = savedMusicTime;
+      applyMusicState();
+    }, {once:true});
+  } else {
+    applyMusicState();
+  }
+
+  window.__arcadeSetSoundOn = function(on){
+    localStorage.setItem('arcadeSoundOn', on ? '1' : '0');
+    applyMusicState();
+  };
+
+  setInterval(function(){
+    sessionStorage.setItem('arcadeMusicTime', bgMusic.currentTime);
+  }, 1000);
+  window.addEventListener('pagehide', function(){
+    sessionStorage.setItem('arcadeMusicTime', bgMusic.currentTime);
+  });
+
   /* ============ Settings panel ============ */
   var settingsBtn = document.getElementById('settings-btn');
   var settingsPanel = document.getElementById('settings-panel');
   var soundToggle = document.getElementById('sound-toggle');
-  var soundOn = true;
+  var soundOn = window.__arcadeSoundOn();
 
   function setToggleState(btn, on){
     if(!btn) return;
@@ -139,6 +187,7 @@
     soundToggle.addEventListener('click', function(){
       soundOn = !soundOn;
       setToggleState(soundToggle, soundOn);
+      window.__arcadeSetSoundOn(soundOn);
     });
   }
 
