@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#000000">
-<title>DVD Bounce — Cosmic Arcade</title>
+<title>Unnamed DVD Game — Cosmic Arcade</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; overscroll-behavior: none; background: #000; }
@@ -278,7 +278,7 @@
       border: 1px solid rgba(255,255,255,0.1); border-bottom: none;
     }
     .upgrade-tab.shifted {
-      bottom: 300px; /* Adjusts up neatly dynamically */
+      bottom: 300px;
       right: auto;
     }
     .upgrade-tab svg { transform: rotate(90deg); }
@@ -387,7 +387,7 @@
           <circle cx="12" cy="12" r="9"></circle>
           <circle cx="12" cy="12" r="2.5" fill="currentColor"></circle>
         </svg>
-        <span class="game-title">DVD Bounce</span>
+        <span class="game-title">Unnamed DVD Game</span>
       </div>
       <button id="settings-btn" class="settings-btn" aria-label="Settings" aria-haspopup="true" aria-expanded="false" type="button">
         <svg viewBox="0 0 24 24" fill="none">
@@ -640,7 +640,6 @@
         ball.y = Math.min(ball.y, Math.max(stageH - logoH, 0));
         ball.el.style.transform = 'translate(' + ball.x + 'px, ' + ball.y + 'px)';
       });
-      // Dynamically reposition mobile tab when resized (handles fit-content shifts safely)
       if (window.innerWidth <= 768 && upgradePanel.classList.contains('open')) {
         upgradeTab.style.bottom = `${upgradePanel.offsetHeight}px`;
       } else {
@@ -795,7 +794,7 @@
       { name: "Block Market", url: "game2.html" },
       { name: "Stop at 5.000", url: "game3.html" },
       { name: "Reverse Typer", url: "game4.html" },
-      { name: "DVD Bounce", url: "game5.html" },
+      { name: "Unnamed DVD Game", url: "game5.html" },
       { name: "Game 6", url: "game6.html" },
       { name: "Game 7", url: "game7.html" }
     ];
