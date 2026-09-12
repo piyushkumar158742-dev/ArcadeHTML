@@ -167,6 +167,24 @@
   .upgrade-tab.shifted { right: min(320px, 86vw); }
   .upgrade-tab svg { width: 18px; height: 18px; }
 
+  /* On small screens, stack the upgrade tab as its own round FAB
+     directly above the bottom game-nav button instead of floating
+     mid-screen on the right edge. */
+  @media (max-width: 991px) {
+    .upgrade-tab {
+      top: auto; bottom: max(82px, calc(env(safe-area-inset-bottom) + 82px));
+      right: 16px; transform: none;
+      width: 50px; height: 50px; border-radius: 50%;
+      background: rgba(10, 10, 10, 0.97);
+      border: 1px solid rgba(255,255,255,0.15);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+    }
+    .upgrade-tab.shifted {
+      right: 16px;
+      bottom: max(82px, calc(env(safe-area-inset-bottom) + 82px));
+    }
+  }
+
   .upgrade-panel {
     position: fixed; top: 0; right: 0; bottom: 0;
     width: min(320px, 86vw);
