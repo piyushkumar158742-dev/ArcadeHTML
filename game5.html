@@ -169,16 +169,18 @@
   .upgrade-tab.shifted svg { transform: rotate(180deg); }
 
   .upgrade-panel {
-    position: fixed; top: 0; right: 0; bottom: 0;
+    position: fixed; top: 50%; right: 0; 
     width: min(320px, 86vw);
+    height: fit-content; max-height: 90vh;
+    border-radius: 16px 0 0 16px;
     background: #0a0a0c;
-    border-left: 1px solid rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.08); border-right: none;
     display: flex; flex-direction: column;
-    transform: translateX(100%);
+    transform: translate(100%, -50%);
     transition: transform .32s cubic-bezier(.2,.8,.2,1);
     z-index: 45; overflow-y: auto;
   }
-  .upgrade-panel.open { transform: translateX(0); }
+  .upgrade-panel.open { transform: translate(0, -50%); }
 
   .upgrade-header {
     padding: 1.4rem 1.3rem 1rem;
@@ -276,7 +278,7 @@
       border: 1px solid rgba(255,255,255,0.1); border-bottom: none;
     }
     .upgrade-tab.shifted {
-      bottom: 60vh;
+      bottom: 300px; /* Adjusts up neatly dynamically */
       right: auto;
     }
     .upgrade-tab svg { transform: rotate(90deg); }
@@ -284,8 +286,9 @@
     
     .upgrade-panel {
       top: auto; bottom: 0; right: 0; left: 0;
-      width: 100%; height: 60vh;
-      border-left: none; border-top: 1px solid rgba(255,255,255,0.08);
+      width: 100%; height: fit-content; max-height: 80vh;
+      border-radius: 16px 16px 0 0;
+      border-left: none; border-right: none; border-top: 1px solid rgba(255,255,255,0.08);
       transform: translateY(100%);
     }
     .upgrade-panel.open {
@@ -637,6 +640,12 @@
         ball.y = Math.min(ball.y, Math.max(stageH - logoH, 0));
         ball.el.style.transform = 'translate(' + ball.x + 'px, ' + ball.y + 'px)';
       });
+      // Dynamically reposition mobile tab when resized (handles fit-content shifts safely)
+      if (window.innerWidth <= 768 && upgradePanel.classList.contains('open')) {
+        upgradeTab.style.bottom = `${upgradePanel.offsetHeight}px`;
+      } else {
+        upgradeTab.style.bottom = '';
+      }
     }, 120);
   });
 
@@ -733,6 +742,15 @@
   upgradeTab.addEventListener('click', () => {
     const open = upgradePanel.classList.toggle('open');
     upgradeTab.classList.toggle('shifted', open);
+    
+    // Auto-adjust bottom spacing for mobile tab based on exact panel height
+    if (window.innerWidth <= 768) {
+      if (open) {
+        upgradeTab.style.bottom = `${upgradePanel.offsetHeight}px`;
+      } else {
+        upgradeTab.style.bottom = '0px';
+      }
+    }
   });
 
   // ===========================================================
