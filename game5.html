@@ -167,22 +167,32 @@
   .upgrade-tab.shifted { right: min(320px, 86vw); }
   .upgrade-tab svg { width: 18px; height: 18px; }
 
-  /* On small screens, stack the upgrade tab as its own round FAB
-     directly above the bottom game-nav button instead of floating
-     mid-screen on the right edge. */
+  /* On small screens the upgrade control lives IN the bottom wall
+     itself — a small handle embedded flush against the bottom edge —
+     and the panel opens as a sheet sliding up from the bottom of the
+     screen, not in from the side. */
   @media (max-width: 991px) {
     .upgrade-tab {
-      top: auto; bottom: max(82px, calc(env(safe-area-inset-bottom) + 82px));
-      right: 16px; transform: none;
-      width: 50px; height: 50px; border-radius: 50%;
+      top: auto; bottom: 0; left: 50%; right: auto;
+      transform: translateX(-50%);
+      width: 72px; height: 26px;
+      border-radius: 14px 14px 0 0;
       background: rgba(10, 10, 10, 0.97);
-      border: 1px solid rgba(255,255,255,0.15);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+      border: 1px solid rgba(255,255,255,0.15); border-bottom: none;
+      box-shadow: 0 -8px 24px rgba(0,0,0,0.5);
+      transition: background .2s ease;
     }
-    .upgrade-tab.shifted {
-      right: 16px;
-      bottom: max(82px, calc(env(safe-area-inset-bottom) + 82px));
+    .upgrade-tab.shifted { right: auto; }
+
+    .upgrade-panel {
+      top: auto; left: 0; right: 0; bottom: 0;
+      width: 100%; max-height: 78vh;
+      border-left: none; border-top: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px 20px 0 0;
+      box-shadow: 0 -12px 40px rgba(0,0,0,0.6);
+      transform: translateY(100%);
     }
+    .upgrade-panel.open { transform: translateY(0); }
   }
 
   .upgrade-panel {
@@ -720,15 +730,19 @@
   const upgradeTab = document.getElementById('upgrade-tab');
   const upgradePanel = document.getElementById('upgrade-panel');
   const tabIconPath = document.querySelector('#upgrade-tab-icon path');
-  
+
+  // Mobile opens as a bottom sheet (chevron flips up/down); desktop
+  // still slides in from the right (chevron flips left/right).
+  const ICONS = {
+    mobile:  { closed: 'M6 15l6-6 6 6',  open: 'M6 9l6 6 6-6' },
+    desktop: { closed: 'M15 18l-6-6 6-6', open: 'M9 18l6-6-6-6' }
+  };
+
   upgradeTab.addEventListener('click', () => {
     const open = upgradePanel.classList.toggle('open');
     upgradeTab.classList.toggle('shifted', open);
-    if (open) {
-      tabIconPath.setAttribute('d', 'M9 18l6-6-6-6'); 
-    } else {
-      tabIconPath.setAttribute('d', 'M15 18l-6-6 6-6'); 
-    }
+    const set = window.innerWidth < 992 ? ICONS.mobile : ICONS.desktop;
+    tabIconPath.setAttribute('d', open ? set.open : set.closed);
   });
 
   // ===========================================================
